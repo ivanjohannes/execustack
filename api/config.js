@@ -51,6 +51,7 @@ try {
 
 export default {
   show_timer_logs: process.env.SHOW_TIMER_LOGS === "true",
+  admin_client_id: process.env.ADMIN_CLIENT_ID || "execustack_admin",
   mongodb: {
     url: process.env.MONGODB_CLIENT_URL,
   },
