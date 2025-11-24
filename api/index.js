@@ -12,6 +12,10 @@ try {
   ]);
   // END Stack
 
+  // Startup Tasks
+  await import("./startup.js");
+  // END Startup Tasks
+
   // Interfaces
   if (config.http.port) {
     await import("./interfaces/socketio/index.js");
@@ -28,7 +32,6 @@ try {
   } else {
     console.log("🟠 - HTTP interface not started because no HTTP_PORT is configured");
   }
-
   // END Interfaces
 
   console.log("🟢 - ExecuStack started");

@@ -91,7 +91,7 @@ export default async function (task_definition, task_metrics, task_results, exec
     });
   }
 
-  task_results.url = config.idc_gateway.url + client_namespace;
+  task_results.url = config.http.host + ":" + config.http.port + client_namespace;
 
   task_results.client_id = client_id;
 

@@ -52,6 +52,10 @@ try {
 export default {
   show_timer_logs: process.env.SHOW_TIMER_LOGS === "true",
   admin_client_id: process.env.ADMIN_CLIENT_ID || "execustack_admin",
+  http: {
+    port: process.env.HTTP_PORT || "4000",
+    host: process.env.HOST || "localhost",
+  },
   mongodb: {
     url: process.env.MONGODB_CLIENT_URL,
   },
@@ -60,9 +64,6 @@ export default {
   },
   redis: {
     url: process.env.REDIS_CLIENT_URL,
-  },
-  http: {
-    port: process.env.HTTP_PORT,
   },
   jwt_keys,
 };

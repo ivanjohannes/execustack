@@ -123,9 +123,12 @@ export default async function (execution_context) {
         name: task_definition.name,
         function: task_definition.function,
       };
-    }
 
-    console.log(`🟢 - Execution complete`);
+      execution_context.evaluated_tasks_definitions[task_name] = {
+        name: task_definition.name,
+        function: task_definition.function,
+      };
+    }
   } catch (err) {
     console.error("🔴 - Execution error:", err);
     execution_context.execution_metrics.is_success = false;
