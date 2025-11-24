@@ -36,6 +36,7 @@
 	},
 	"dependencies": {
 		"@sveltejs/adapter-node": "^5.4.0",
+		"bits-ui": "^2.14.4",
 		"mongodb": "^7.0.0"
 	}
 }
