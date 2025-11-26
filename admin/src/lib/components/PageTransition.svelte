@@ -5,6 +5,6 @@
 	let { children } = $props();
 </script>
 
-<div class="fixed h-screen w-screen flex items-center justify-center bg-slate-50" transition:fade={{ duration: 200, easing: cubicOut }}>
+<div class="fixed h-screen w-screen flex items-center justify-center bg-bg" transition:fade={{ duration: 200, easing: cubicOut }}>
 	{@render children()}
 </div>

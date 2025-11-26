@@ -1,3 +1,241 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
+
+/* ================================
+   THEME: DARK (DEFAULT)
+   ================================= */
+
+@theme {
+	/* ================================
+	   BACKGROUND COLORS
+	   Used for: Main layout surfaces, containers, and layered content
+	   ================================ */
+	
+	/* Main application background - Use for: body, main layout wrapper, page backgrounds */
+	--color-bg: #0a0a0a;
+	
+	/* Elevated surface layer - Use for: cards, panels, modal backgrounds, sidebars, navigation bars */
+	--color-surface: #141414;
+	
+	/* Alternative/variant surface - Use for: table rows (zebra striping), list items, nested sections, subtle differentiation within cards */
+	--color-surface-variant: #1c1c1c;
+	
+	/* Top-layer overlay surfaces - Use for: dropdowns, popovers, tooltips, context menus, floating elements */
+	--color-overlay: #1f1f1f;
+
+	/* ================================
+	   TEXT COLORS
+	   Used for: All text content across the application
+	   ================================ */
+	
+	/* Primary text - Use for: headings, body text, labels, main content */
+	--color-text: #f5f5f5;
+	
+	/* Secondary/muted text - Use for: descriptions, helper text, timestamps, captions, placeholder text, disabled text */
+	--color-text-muted: #a0a0a0;
+	
+	/* Inverse text - Use for: text on primary/accent buttons, text on colored backgrounds, badges with colored backgrounds */
+	--color-text-inverse: #0a0a0a;
+
+	/* ================================
+	   BORDER & SEPARATOR COLORS
+	   Used for: Visual separation and component boundaries
+	   ================================ */
+	
+	/* Standard borders - Use for: card edges, container borders, table borders, button outlines */
+	--color-border: #2a2a2a;
+	
+	/* Input/focus outlines - Use for: input field borders, select boxes, textareas, interactive element boundaries */
+	--color-outline: #333333;
+	
+	/* Divider lines - Use for: horizontal rules, section separators, visual breaks between content */
+	--color-divider: #222222;
+
+	/* ================================
+	   PRIMARY ACTION COLORS
+	   Used for: Brand identity and primary user actions
+	   ================================ */
+	
+	/* Primary brand color - Use for: primary buttons, links, active nav items, selected states, brand elements, CTAs */
+	--color-primary: #c3fc5e;
+	
+	/* Text/icons on primary color - Use for: button text, icon color when on primary background */
+	--color-primary-foreground: #0a0a0a;
+
+	/* ================================
+	   SECONDARY ACTION COLORS
+	   Used for: Alternative actions and complementary elements
+	   ================================ */
+	
+	/* Secondary action color - Use for: secondary buttons, alternative links, supplementary CTAs, badges, tags */
+	--color-secondary: #5b9eff;
+	
+	/* Text/icons on secondary color - Use for: button text, icon color when on secondary background */
+	--color-secondary-foreground: #0a0a0a;
+
+	/* ================================
+	   STATUS COLORS
+	   Used for: Feedback, alerts, and state communication
+	   ================================ */
+	
+	/* Error/danger state - Use for: error messages, destructive buttons, validation errors, alerts, failed states */
+	--color-error: #ff5757;
+	
+	/* Text/icons on error color - Use for: text on error buttons/badges, icons in error alerts */
+	--color-error-foreground: #0a0a0a;
+
+	/* Success/positive state - Use for: success messages, confirmation alerts, completed states, positive indicators */
+	--color-success: #3dd68c;
+	
+	/* Text/icons on success color - Use for: text on success buttons/badges, icons in success alerts */
+	--color-success-foreground: #0a0a0a;
+
+	/* Warning/caution state - Use for: warning messages, caution alerts, pending states, attention indicators */
+	--color-warning: #ffc244;
+	
+	/* Text/icons on warning color - Use for: text on warning buttons/badges, icons in warning alerts */
+	--color-warning-foreground: #0a0a0a;
+
+	/* Informational state - Use for: info messages, tips, help text, neutral notifications, informative badges */
+	--color-info: #4fc3f7;
+	
+	/* Text/icons on info color - Use for: text on info buttons/badges, icons in info alerts */
+	--color-info-foreground: #0a0a0a;
+
+	/* ================================
+	   INTERACTION STATES
+	   Used for: User interaction feedback
+	   ================================ */
+	
+	/* Hover state - Use for: backgrounds on hover for buttons, list items, table rows, clickable cards, menu items */
+	--color-hover: #1f1f1f;
+	
+	/* Active/pressed state - Use for: backgrounds when clicking/pressing buttons, active menu items, depressed state */
+	--color-active: #2a2a2a;
+	
+	/* Focus ring/outline - Use for: keyboard focus indicators, accessibility outlines, focused form fields */
+	--color-focus: #c3fc5e;
+	
+	/* Text selection - Use for: highlighted text when user selects content (with transparency for readability) */
+	--color-selection: #c3fc5e55;
+}
+
+/* ================================
+   THEME: LIGHT
+   ================================= */
+
+[data-theme='light'] {
+	/* ================================
+	   BACKGROUND COLORS
+	   Used for: Main layout surfaces, containers, and layered content
+	   ================================ */
+	
+	/* Main application background - Use for: body, main layout wrapper, page backgrounds */
+	--color-bg: #fafafa;
+	
+	/* Elevated surface layer - Use for: cards, panels, modal backgrounds, sidebars, navigation bars */
+	--color-surface: #ffffff;
+	
+	/* Alternative/variant surface - Use for: table rows (zebra striping), list items, nested sections, subtle differentiation within cards */
+	--color-surface-variant: #f5f5f5;
+	
+	/* Top-layer overlay surfaces - Use for: dropdowns, popovers, tooltips, context menus, floating elements */
+	--color-overlay: #ffffff;
+
+	/* ================================
+	   TEXT COLORS
+	   Used for: All text content across the application
+	   ================================ */
+	
+	/* Primary text - Use for: headings, body text, labels, main content */
+	--color-text: #0a0a0a;
+	
+	/* Secondary/muted text - Use for: descriptions, helper text, timestamps, captions, placeholder text, disabled text */
+	--color-text-muted: #6b6b6b;
+	
+	/* Inverse text - Use for: text on primary/accent buttons, text on colored backgrounds, badges with colored backgrounds */
+	--color-text-inverse: #fafafa;
+
+	/* ================================
+	   BORDER & SEPARATOR COLORS
+	   Used for: Visual separation and component boundaries
+	   ================================ */
+	
+	/* Standard borders - Use for: card edges, container borders, table borders, button outlines */
+	--color-border: #e0e0e0;
+	
+	/* Input/focus outlines - Use for: input field borders, select boxes, textareas, interactive element boundaries */
+	--color-outline: #d0d0d0;
+	
+	/* Divider lines - Use for: horizontal rules, section separators, visual breaks between content */
+	--color-divider: #ebebeb;
+
+	/* ================================
+	   PRIMARY ACTION COLORS
+	   Used for: Brand identity and primary user actions
+	   ================================ */
+	
+	/* Primary brand color - Use for: primary buttons, links, active nav items, selected states, brand elements, CTAs */
+	--color-primary: #7bc91f;
+	
+	/* Text/icons on primary color - Use for: button text, icon color when on primary background */
+	--color-primary-foreground: #fafafa;
+
+	/* ================================
+	   SECONDARY ACTION COLORS
+	   Used for: Alternative actions and complementary elements
+	   ================================ */
+	
+	/* Secondary action color - Use for: secondary buttons, alternative links, supplementary CTAs, badges, tags */
+	--color-secondary: #1976d2;
+	
+	/* Text/icons on secondary color - Use for: button text, icon color when on secondary background */
+	--color-secondary-foreground: #fafafa;
+
+	/* ================================
+	   STATUS COLORS
+	   Used for: Feedback, alerts, and state communication
+	   ================================ */
+	
+	/* Error/danger state - Use for: error messages, destructive buttons, validation errors, alerts, failed states */
+	--color-error: #e53935;
+	
+	/* Text/icons on error color - Use for: text on error buttons/badges, icons in error alerts */
+	--color-error-foreground: #fafafa;
+
+	/* Success/positive state - Use for: success messages, confirmation alerts, completed states, positive indicators */
+	--color-success: #2e7d32;
+	
+	/* Text/icons on success color - Use for: text on success buttons/badges, icons in success alerts */
+	--color-success-foreground: #fafafa;
+
+	/* Warning/caution state - Use for: warning messages, caution alerts, pending states, attention indicators */
+	--color-warning: #f57c00;
+	
+	/* Text/icons on warning color - Use for: text on warning buttons/badges, icons in warning alerts */
+	--color-warning-foreground: #fafafa;
+
+	/* Informational state - Use for: info messages, tips, help text, neutral notifications, informative badges */
+	--color-info: #0288d1;
+	
+	/* Text/icons on info color - Use for: text on info buttons/badges, icons in info alerts */
+	--color-info-foreground: #fafafa;
+
+	/* ================================
+	   INTERACTION STATES
+	   Used for: User interaction feedback
+	   ================================ */
+	
+	/* Hover state - Use for: backgrounds on hover for buttons, list items, table rows, clickable cards, menu items */
+	--color-hover: #f0f0f0;
+	
+	/* Active/pressed state - Use for: backgrounds when clicking/pressing buttons, active menu items, depressed state */
+	--color-active: #e5e5e5;
+	
+	/* Focus ring/outline - Use for: keyboard focus indicators, accessibility outlines, focused form fields */
+	--color-focus: #7bc91f;
+	
+	/* Text selection - Use for: highlighted text when user selects content (with transparency for readability) */
+	--color-selection: #7bc91f55;
+}

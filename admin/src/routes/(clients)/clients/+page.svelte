@@ -7,10 +7,10 @@
 
 {#snippet block({ title, subtitle })}
 	<div
-		class="border rounded p-4 bg-white border-slate-300 hover:bg-slate-100 flex items-start justify-between"
+		class="border rounded p-4 bg-surface border-border hover:bg-surface-variant flex items-start justify-between"
 	>
 		<div class="">
-			<div class="text-xl text-slate-800">{title}</div>
+			<div class="text-xl text-text">{title}</div>
 		</div>
 		<Button class="cursor-pointer">View</Button>
 	</div>
