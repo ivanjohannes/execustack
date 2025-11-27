@@ -1,5 +1,7 @@
 const allowedThemes = ['light', 'dark'];
 
+export const theme_settings = $state({});
+
 /**
  * @description Applies the stored theme from localStorage or the system preference if none is stored.
  * @returns {string} The applied theme.
@@ -35,6 +37,7 @@ export function setTheme(theme) {
 
 	localStorage.setItem('theme', theme);
 	document.documentElement.setAttribute('data-theme', theme);
+	theme_settings.theme = theme;
 
 	return theme;
 }

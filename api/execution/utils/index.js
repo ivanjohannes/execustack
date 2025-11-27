@@ -192,6 +192,48 @@ export function executeWithRedisLock(lock_key, execution_context, func) {
 }
 
 /**
+ * @description Creates a jwt token with custom payload.
+ * @param {object} param0
+ * @param {object} param0.payload - The payload to include in the JWT.
+ * @param {number} [param0.expiry_ms] - The expiry time in milliseconds.
+ * @param {number} [param0.allowed_uses] - The allowed uses for the token.
+ * @param {string} param0.client_id - The client ID for whom the token is generated.
+ * @returns {Promise<string>} - The generated JWT token.
+ */
+export async function createJWT({ payload, expiry_ms, allowed_uses, client_id }) {
+  const ninety_days_ms = 90 * 24 * 60 * 60 * 1000;
+  if (!expiry_ms) expiry_ms = ninety_days_ms;
+
+  const expiry_seconds = Math.floor(expiry_ms / 1000);
+
+  const token_id = generateRandomString(24);
+
+  // generate token for client
+  const token = jwt.sign(
+    {
+      sub: client_id,
+      jti: token_id,
+      payload,
+    },
+    config.jwt_keys.private,
+    {
+      algorithm: "RS256",
+      keyid: config.jwt_keys.key_id,
+      expiresIn: expiry_seconds,
+    }
+  );
+
+  // store in redis
+  if (redis_client) {
+    const redis_key = `${client_id}:tokens:${token_id}`;
+    const redis_value = Number.isInteger(+allowed_uses) ? String(parseInt(allowed_uses.toString(), 10)) : "active";
+    await redis_client.set(redis_key, redis_value, "EX", expiry_seconds);
+  }
+
+  return token;
+}
+
+/**
  * @description Verifies a JWT token
  * @param {string} token
  * @param {string} client_id
@@ -211,7 +253,7 @@ export async function verifyJWT(token, client_id) {
     }
 
     if (!redis_client) return verified_token;
-    
+
     const redis_key = `${client_id}:tokens:${verified_token.jti}`;
     const token_status = await redis_client.get(redis_key);
 

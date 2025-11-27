@@ -1,6 +1,6 @@
 import config from "../../config.js";
 import socketio_server from "../../interfaces/socketio/index.js";
-import { verifyJWT } from "../utils/index.js";
+import { createJWT, verifyJWT } from "../utils/index.js";
 
 /**
  * @description Makes sure a namespace is prepared for WebSocket connections.
@@ -12,10 +12,6 @@ import { verifyJWT } from "../utils/index.js";
  */
 export default async function (task_definition, task_metrics, task_results, execution_context) {
   const { namespace = "" } = task_definition?.params ?? {};
-
-  if (!namespace) {
-    throw "Invalid task definition";
-  }
 
   const client_id = execution_context.client_settings.client_id;
 
@@ -42,7 +38,9 @@ export default async function (task_definition, task_metrics, task_results, exec
 
         const verified_token = await verifyJWT(token, client_id);
 
-        if (!verified_token || verified_token.payload?.namespace !== formatted_namespace) {
+        const token_namespace = verified_token?.payload?.namespace ?? "";
+
+        if (!verified_token || token_namespace !== formatted_namespace) {
           socket.emit("auth_error", "Authentication error");
           return;
         }
@@ -81,7 +79,9 @@ export default async function (task_definition, task_metrics, task_results, exec
 
       const verified_token = await verifyJWT(token, client_id);
 
-      if (!verified_token || verified_token.payload?.namespace !== formatted_namespace) {
+      const token_namespace = verified_token?.payload?.namespace ?? "";
+
+      if (!verified_token || token_namespace !== formatted_namespace) {
         next(new Error("Authentication error"));
         socket.disconnect(true);
         return;
@@ -94,6 +94,13 @@ export default async function (task_definition, task_metrics, task_results, exec
   task_results.url = config.http.host + ":" + config.http.port + client_namespace;
 
   task_results.client_id = client_id;
+
+  task_results.token = await createJWT({
+    payload: {
+      namespace: formatted_namespace,
+    },
+    client_id: execution_context.client_settings.client_id,
+  });
 
   task_metrics.is_success = true;
 }

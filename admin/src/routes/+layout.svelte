@@ -2,14 +2,22 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
-	import { applyStoredTheme, setTheme } from '$lib/theme';
+	import { applyStoredTheme, theme_settings } from '$lib/theme.svelte';
+	import Navbar from '$lib/components/Navbar.svelte';
+	import Sidebar from '$lib/components/Sidebar.svelte';
+	import { browser } from '$app/environment';
+	import { initSocket } from '$lib/socketio.svelte';
 
-	let { children } = $props();
+	let sidebar = $state();
 
-	let theme = $state();
+	let { children, data } = $props();
 
 	onMount(() => {
-		theme = applyStoredTheme();
+		applyStoredTheme();
+
+		if (browser && data.ws_namespace_settings) {
+			initSocket(data.ws_namespace_settings);
+		}
 	});
 </script>
 
@@ -17,10 +25,16 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-{#if theme}
-	<button onclick={() => (theme = setTheme('light'))}>light</button>
-	<button onclick={() => (theme = setTheme('dark'))}>dark</button>
-	<main class="min-h-screen bg-bg text-text">
-		{@render children()}
+{#if theme_settings.theme}
+	<main class="bg-bg text-text flex flex-col h-screen min-h-0">
+		<div class="shrink-0">
+			<Navbar toggleSidebar={sidebar.toggle} />
+		</div>
+		<div class="grow flex items-stretch min-h-0">
+			<Sidebar bind:this={sidebar} />
+			<div class="grow overflow-y-auto p-4 md:px-8">
+				{@render children()}
+			</div>
+		</div>
 	</main>
 {/if}

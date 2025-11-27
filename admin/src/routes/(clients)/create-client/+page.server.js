@@ -18,6 +18,14 @@ export const actions = {
 							}
 						}
 					}
+				},
+				ws_emit_event: {
+					function: 'ws_emit_event',
+					params: {
+						room: 'clients',
+						event: 'client_created',
+						payload: {}
+					}
 				}
 			},
 			fetch
@@ -30,17 +38,17 @@ export const actions = {
 			};
 		}
 
-        const result = await response.json();
+		const result = await response.json();
 
-        const client = result?.tasks_results?.create_client?.document ?? null;
+		const client = result?.tasks_results?.create_client?.document ?? null;
 
-        if (client) {
-            redirect(303, `/${client.execustack_id}`);
-        }
+		if (client) {
+			redirect(303, `/${client.execustack_id}`);
+		}
 
-        return {
-            success: true,
-            message: 'Client created successfully.'
-        };
+		return {
+			success: true,
+			message: 'Client created successfully.'
+		};
 	}
 };
