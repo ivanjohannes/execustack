@@ -1,4 +1,4 @@
-import { execution } from '$lib/server/api';
+import { execution } from '$lib/server/es_api';
 import { redirect } from '@sveltejs/kit';
 
 export const actions = {
@@ -6,7 +6,7 @@ export const actions = {
 		const formData = await request.formData();
 		const name = formData.get('name');
 
-		const response = await execution({
+		const res = await execution({
 			tasks_definitions: {
 				create_client: {
 					function: 'mongodb_create_doc',
@@ -24,26 +24,28 @@ export const actions = {
 					params: {
 						room: 'clients',
 						event: 'client_created',
-						payload: {}
+						payload: {
+							client: '[[jsonata]]tasks_results.create_client.document'
+						}
 					}
 				}
 			},
 			fetch
 		});
 
-		if (response.status !== 200) {
+		if (res.status !== 200) {
 			return {
 				success: false,
 				message: 'Failed to create client.'
 			};
 		}
 
-		const result = await response.json();
+		const result = await res.json();
 
 		const client = result?.tasks_results?.create_client?.document ?? null;
 
 		if (client) {
-			redirect(303, `/${client.execustack_id}`);
+			redirect(303, `/${client.es_id}`);
 		}
 
 		return {

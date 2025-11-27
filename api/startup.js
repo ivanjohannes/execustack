@@ -6,14 +6,14 @@ import mongodb_client from "./stack/mongodb/index.js";
 const admin_db = mongodb_client.db(config.admin_client_id);
 
 // check that the admin client exists
-const api_key = process.env.ADMIN_CLIENT_API_KEY || "execustack_default_key";
+const api_key = process.env.ADMIN_CLIENT_API_KEY || "es_default_key";
 const api_key_hash = createHash(api_key);
 const admin_client = await admin_db.collection("clients").findOne({
   "settings.client_id": config.admin_client_id,
 });
 
 if (admin_client) {
-  const execustack_id = admin_client.execustack_id;
+  const es_id = admin_client.es_id;
 
   // check that the hash matches
   if (admin_client.api_key_hash !== api_key_hash) {
@@ -27,7 +27,7 @@ if (admin_client) {
           update_client: {
             function: "mongodb_update_doc",
             params: {
-              execustack_id,
+              es_id,
               update: {
                 $set: {
                   api_key_hash,

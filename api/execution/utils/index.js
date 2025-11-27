@@ -52,24 +52,24 @@ export function generateRandomString(length = 20) {
  * @param {import("../../types/index.js").ExecutionContext} execution_context - The tech stack containing the MongoDB instance.
  * @returns {Promise<string>} - The generated document ID.
  */
-export async function generateExecustackID(collection_name, execution_context) {
+export async function generateESID(collection_name, execution_context) {
   let uuid = uuidv4();
-  const execustack_id = `${collection_name}~${uuid}`;
+  const es_id = `${collection_name}~${uuid}`;
 
   const mongodb = mongodb_client.db(execution_context.client_settings.client_id);
-  const duplicate = await mongodb?.collection(collection_name).findOne({ execustack_id });
-  if (duplicate) return generateExecustackID(collection_name, execution_context);
+  const duplicate = await mongodb?.collection(collection_name).findOne({ es_id });
+  if (duplicate) return generateESID(collection_name, execution_context);
 
-  return execustack_id;
+  return es_id;
 }
 
 /**
- * @description extracts the collection_name from the execustack_id assuming the execustack_id always ends with ~[uuid]
- * @param {string} execustack_id - The execustack ID of the document.
+ * @description extracts the collection_name from the es_id assuming the es_id always ends with ~[uuid]
+ * @param {string} es_id - The es ID of the document.
  * @returns {string} - The collection name.
  */
-export function extractCollectionNameFromExecustackID(execustack_id) {
-  const parts = execustack_id.split("~");
+export function extractCollectionNameFromESID(es_id) {
+  const parts = es_id.split("~");
   parts.pop(); // remove the uuid part
   return parts.join("~");
 }
@@ -81,32 +81,32 @@ export function extractCollectionNameFromExecustackID(execustack_id) {
  * @returns {Promise<object>} - The result of the version creation and update.
  */
 export async function saveDocumentVersion(document, execution_context) {
-  const versions_collection_name = "execustack-versions";
+  const versions_collection_name = "es-versions";
 
   if (!document) {
     throw "Cannot save document version: Document not found";
   }
 
   // create the version document
-  const version_execustack_id = await generateExecustackID(versions_collection_name, execution_context);
+  const version_es_id = await generateESID(versions_collection_name, execution_context);
   const version_doc = {
-    document_execustack_id: document.execustack_id,
-    execustack_version: document.execustack_version,
-    from_execustack_version: document.from_execustack_version,
-    execution_execustack_id: execution_context.execustack_id,
+    document_es_id: document.es_id,
+    es_version: document.es_version,
+    from_es_version: document.from_es_version,
+    execution_es_id: execution_context.es_id,
     document,
     createdAt: new Date(),
   };
   const mongodb = mongodb_client.db(execution_context.client_settings.client_id);
   await mongodb.collection(versions_collection_name).findOneAndUpdate(
     {
-      document_execustack_id: document.execustack_id,
-      execustack_version: document.execustack_version,
+      document_es_id: document.es_id,
+      es_version: document.es_version,
     },
     {
       $set: version_doc,
       $setOnInsert: {
-        execustack_id: version_execustack_id,
+        es_id: version_es_id,
       },
     },
     {
@@ -116,7 +116,7 @@ export async function saveDocumentVersion(document, execution_context) {
   );
 
   return {
-    execustack_id: version_execustack_id,
+    es_id: version_es_id,
   };
 }
 

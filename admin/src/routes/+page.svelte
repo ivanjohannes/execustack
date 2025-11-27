@@ -5,16 +5,25 @@
 
 	let { data } = $props();
 
-	let num_clients = $state(data.summary.num_clients);
+	let num_clients = $state();
 
-	onMount(() => {
-		if (browser && data.clients_token && socketio.client) {
-			joinSocketRooms(data.clients_token);
+	async function init() {
+		const _page = await data._page;
+
+		num_clients = _page.tasks_results?.get_clients_summary?.data?.[0]?.num_clients;
+
+		const clients_token = _page.tasks_results?.get_clients_ws_token?.token;
+		if (browser && clients_token && socketio.client) {
+			joinSocketRooms(clients_token);
 
 			socketio.client.on('client_created', (payload) => {
 				num_clients = num_clients + 1;
 			});
 		}
+	}
+
+	onMount(() => {
+		init();
 
 		return () => {
 			leaveSocketRooms(['clients']);
@@ -24,7 +33,7 @@
 
 {#snippet block({ title, subtitle })}
 	<div
-		class="border rounded p-4 bg-surface border-border hover:bg-surface-variant flex items-start justify-between"
+		class="border rounded p-4 bg-surface border-border hover:bg-hover flex items-start justify-between"
 	>
 		<div class="">
 			<div class="text-xl text-text">{title}</div>
@@ -34,11 +43,17 @@
 {/snippet}
 
 <h1 class="text-2xl font-semibold pb-4">Dashboard</h1>
-<div class="grid lg:grid-cols-2 gap-2">
-	<a href="/clients">
-		{@render block({
-			title: 'Clients',
-			subtitle: num_clients
-		})}
-	</a>
-</div>
+{#await data._page}
+	Loading...
+{:then}
+	<div class="grid lg:grid-cols-2 gap-2">
+		<a href="/clients">
+			{@render block({
+				title: 'Clients',
+				subtitle: num_clients
+			})}
+		</a>
+	</div>
+{:catch error}
+	{error.message}
+{/await}

@@ -1,5 +1,8 @@
 const allowedThemes = ['light', 'dark'];
 
+/**
+ * @type {{ theme?: string }}
+ */
 export const theme_settings = $state({});
 
 /**

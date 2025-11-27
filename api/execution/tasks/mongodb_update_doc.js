@@ -1,5 +1,5 @@
 import mongodb_client from "../../stack/mongodb/index.js";
-import { executeWithRedisLock, extractCollectionNameFromExecustackID, saveDocumentVersion } from "../utils/index.js";
+import { executeWithRedisLock, extractCollectionNameFromESID, saveDocumentVersion } from "../utils/index.js";
 
 /**
  * @description Updates a document in the specified collection.
@@ -10,26 +10,26 @@ import { executeWithRedisLock, extractCollectionNameFromExecustackID, saveDocume
  * @returns {Promise<object>} - The result of the document update.
  */
 export default async function (task_definition, task_metrics, task_results, execution_context) {
-  const lock_key = task_definition.params?.execustack_id;
+  const lock_key = task_definition.params?.es_id;
 
   async function task() {
-    const { execustack_id, update } = task_definition.params;
+    const { es_id, update } = task_definition.params;
 
     // Validate input
-    if (!execustack_id || !update) {
+    if (!es_id || !update) {
       throw "Invalid task definition";
     }
 
     // check db
-    const collection_name = extractCollectionNameFromExecustackID(execustack_id);
-    const versions_collection_name = "execustack-versions";
+    const collection_name = extractCollectionNameFromESID(es_id);
+    const versions_collection_name = "es-versions";
     const mongodb = mongodb_client.db(execution_context.client_settings.client_id);
     const db_result = await mongodb
       .collection(collection_name)
       .aggregate([
         {
           $match: {
-            execustack_id,
+            es_id,
           },
         },
         {
@@ -42,16 +42,16 @@ export default async function (task_definition, task_metrics, task_results, exec
         {
           $lookup: {
             from: versions_collection_name,
-            let: { document_execustack_id: execustack_id },
+            let: { document_es_id: es_id },
             pipeline: [
               {
                 $match: {
                   $expr: {
-                    $and: [{ $eq: ["$document_execustack_id", "$$document_execustack_id"] }],
+                    $and: [{ $eq: ["$document_es_id", "$$document_es_id"] }],
                   },
                 },
               },
-              { $sort: { execustack_version: -1 } },
+              { $sort: { es_version: -1 } },
               { $limit: 1 },
             ],
             as: "latest_version",
@@ -68,25 +68,25 @@ export default async function (task_definition, task_metrics, task_results, exec
     const document_data = db_result[0];
 
     if (!document_data?.document) {
-      throw `Cannot update document ${execustack_id}: Document not found`;
+      throw `Cannot update document ${es_id}: Document not found`;
     }
 
     const doc_is_latest =
-      document_data?.document?.execustack_version > (document_data?.latest_version?.execustack_version || 0);
+      document_data?.document?.es_version > (document_data?.latest_version?.es_version || 0);
     if (doc_is_latest) {
       // save the document version
       const version_result = await saveDocumentVersion(document_data.document, execution_context);
 
       // set a callback to delete the created version document
       execution_context.on_error_callbacks.push(async () => {
-        await mongodb.collection(versions_collection_name).deleteOne({ execustack_id: version_result.execustack_id });
+        await mongodb.collection(versions_collection_name).deleteOne({ es_id: version_result.es_id });
       });
     }
 
-    const new_execustack_version = doc_is_latest
-      ? document_data.document.execustack_version + 1
-      : (document_data.latest_version?.execustack_version || 0) + 1;
-    const new_from_execustack_version = document_data.document.execustack_version;
+    const new_es_version = doc_is_latest
+      ? document_data.document.es_version + 1
+      : (document_data.latest_version?.es_version || 0) + 1;
+    const new_from_es_version = document_data.document.es_version;
 
     // set updates
     let updates;
@@ -98,20 +98,20 @@ export default async function (task_definition, task_metrics, task_results, exec
     updates.push({
       $set: {
         updatedAt: new Date(),
-        execustack_version: new_execustack_version,
-        from_execustack_version: new_from_execustack_version,
+        es_version: new_es_version,
+        from_es_version: new_from_es_version,
       },
     });
 
     // update the document
-    const updated_document = await mongodb.collection(collection_name).findOneAndUpdate({ execustack_id }, updates, {
+    const updated_document = await mongodb.collection(collection_name).findOneAndUpdate({ es_id }, updates, {
       returnDocument: "after",
     });
 
     // set a callback to revert the updated document
     execution_context.on_error_callbacks.push(async () => {
       await mongodb.collection(collection_name).findOneAndUpdate(
-        { execustack_id },
+        { es_id },
         {
           $set: document_data.document,
         },

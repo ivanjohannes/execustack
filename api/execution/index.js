@@ -1,4 +1,4 @@
-import { evaluateTemplate, generateExecustackID, precisionTimer } from "./utils/index.js";
+import { evaluateTemplate, generateESID, precisionTimer } from "./utils/index.js";
 import * as task_functions from "./tasks/index.js";
 import { fanout_publish } from "./utils/rabbitmq.js";
 import mongodb_client from "../stack/mongodb/index.js";
@@ -42,8 +42,8 @@ export default async function (execution_context) {
       }, [])
       .sort((a, b) => a.execution_order - b.execution_order);
 
-    // generate execustack_id
-    execution_context.execustack_id = await generateExecustackID("execustack-executions", execution_context);
+    // generate es_id
+    execution_context.es_id = await generateESID("es-executions", execution_context);
 
     // set tasks_metrics to { is_attempted: false }
     execution_context.tasks_metrics = ordered_task_definitions.reduce((acc, task_definition) => {
@@ -102,7 +102,7 @@ export default async function (execution_context) {
       // publish task_results to a fanout exchange
       const task_results = execution_context.tasks_results[task_name];
       if (task_results) {
-        const exchange_name = `execustack-tasks.${execution_context.client_settings.client_id}.${task_definition.function}`;
+        const exchange_name = `es-tasks.${execution_context.client_settings.client_id}.${task_definition.function}`;
         fanout_publish(
           exchange_name,
           JSON.stringify({
@@ -148,8 +148,8 @@ export default async function (execution_context) {
 
   // create the execution document in the database
   const mongodb = mongodb_client.db(execution_context.client_settings.client_id);
-  await mongodb.collection("execustack-executions").insertOne({
-    execustack_id: execution_context.execustack_id,
+  await mongodb.collection("es-executions").insertOne({
+    es_id: execution_context.es_id,
     execution_definition: execution_context.execution_definition,
     execution_metrics: execution_context.execution_metrics,
     tasks_metrics: execution_context.tasks_metrics,

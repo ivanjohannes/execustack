@@ -1,6 +1,6 @@
 /**
  * @typedef {object} ExecutionContext
- * @property {string} [execustack_id]
+ * @property {string} [es_id]
  * @property {object} client_settings
  * @property {string} [client_settings.name]
  * @property {string} [client_settings.client_id]

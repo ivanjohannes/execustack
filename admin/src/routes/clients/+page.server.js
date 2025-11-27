@@ -7,15 +7,16 @@ export async function load({ fetch }) {
 		const res = await execution({
 			fetch,
 			tasks_definitions: {
-				get_clients_summary: {
+				get_clients: {
 					function: 'mongodb_aggregation',
 					params: {
 						collection_name: 'clients',
 						pipeline: [
 							{
-								$group: {
-									_id: 0,
-									num_clients: { $sum: 1 }
+								$project: {
+									es_id: 1,
+									settings: 1,
+									createdAt: 1
 								}
 							}
 						]

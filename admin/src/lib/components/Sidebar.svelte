@@ -31,14 +31,14 @@
 	</div>
 {/snippet}
 
-<div class="hidden md:block h-full w-64 max-w-full pt-4 border-r border-border bg-surface-variant">
+<div class="hidden md:block h-full w-64 max-w-full pt-4 border-r border-border bg-surface">
 	{@render content()}
 </div>
 
 {#if is_open}
 	<div
-		class="fixed top-0 left-0 h-screen w-screen overflow-y-auto md:hidden bg-bg"
-		transition:slide={{ duration: 100, axis: 'x', easing: cubicInOut }}
+		class="fixed top-0 left-0 h-screen w-screen overflow-y-auto md:hidden bg-surface"
+		transition:slide={{ duration: 100, axis: 'y', easing: cubicInOut }}
 	>
 		<div class="w-full flex items-center justify-between h-18 px-4 md:px-8 border-b border-border">
 			<Logo />

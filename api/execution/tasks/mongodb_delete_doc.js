@@ -1,5 +1,5 @@
 import mongodb_client from "../../stack/mongodb/index.js";
-import { executeWithRedisLock, extractCollectionNameFromExecustackID, saveDocumentVersion } from "../utils/index.js";
+import { executeWithRedisLock, extractCollectionNameFromESID, saveDocumentVersion } from "../utils/index.js";
 
 /**
  * @description Deletes a document in the specified collection.
@@ -10,26 +10,26 @@ import { executeWithRedisLock, extractCollectionNameFromExecustackID, saveDocume
  * @returns {Promise<object>} - The result of the document deletion.
  */
 export default async function (task_definition, task_metrics, task_results, execution_context) {
-  const lock_key = task_definition.params?.execustack_id;
+  const lock_key = task_definition.params?.es_id;
 
   async function task() {
-    const { execustack_id } = task_definition.params;
+    const { es_id } = task_definition.params;
 
     // Validate input
-    if (!execustack_id) {
+    if (!es_id) {
       throw "Invalid task definition";
     }
 
     // check db
-    const collection_name = extractCollectionNameFromExecustackID(execustack_id);
-    const versions_collection_name = "execustack-versions";
+    const collection_name = extractCollectionNameFromESID(es_id);
+    const versions_collection_name = "es-versions";
     const mongodb = mongodb_client.db(execution_context.client_settings.client_id);
     const db_result = await mongodb
       .collection(collection_name)
       .aggregate([
         {
           $match: {
-            execustack_id,
+            es_id,
           },
         },
         {
@@ -42,16 +42,16 @@ export default async function (task_definition, task_metrics, task_results, exec
         {
           $lookup: {
             from: versions_collection_name,
-            let: { document_execustack_id: execustack_id },
+            let: { document_es_id: es_id },
             pipeline: [
               {
                 $match: {
                   $expr: {
-                    $and: [{ $eq: ["$document_execustack_id", "$$document_execustack_id"] }],
+                    $and: [{ $eq: ["$document_es_id", "$$document_es_id"] }],
                   },
                 },
               },
-              { $sort: { execustack_version: -1 } },
+              { $sort: { es_version: -1 } },
               { $limit: 1 },
             ],
             as: "latest_version",
@@ -68,22 +68,22 @@ export default async function (task_definition, task_metrics, task_results, exec
     const document_data = db_result[0];
 
     if (!document_data?.document) {
-      throw `Cannot delete document ${execustack_id}: Document not found`;
+      throw `Cannot delete document ${es_id}: Document not found`;
     }
 
     const doc_is_latest =
-      document_data?.document?.execustack_version > document_data?.latest_version?.execustack_version;
+      document_data?.document?.es_version > document_data?.latest_version?.es_version;
     let latest_document;
     if (doc_is_latest) {
       latest_document = document_data.document;
     } else {
-      // make it the latest document by updating its execustack_version
+      // make it the latest document by updating its es_version
       latest_document = await mongodb.collection(collection_name).findOneAndUpdate(
-        { execustack_id },
+        { es_id },
         {
           $set: {
-            execustack_version: (document_data?.latest_version?.execustack_version || 0) + 1,
-            from_execustack_version: document_data?.document?.execustack_version || 0,
+            es_version: (document_data?.latest_version?.es_version || 0) + 1,
+            from_es_version: document_data?.document?.es_version || 0,
             updatedAt: new Date(),
           },
         },
@@ -95,11 +95,11 @@ export default async function (task_definition, task_metrics, task_results, exec
       // set a callback to undo the change
       execution_context.on_error_callbacks.push(async () => {
         await mongodb.collection(collection_name).findOneAndUpdate(
-          { execustack_id },
+          { es_id },
           {
             $set: {
-              execustack_version: document_data.document.execustack_version,
-              from_execustack_version: document_data.document.from_execustack_version,
+              es_version: document_data.document.es_version,
+              from_es_version: document_data.document.from_es_version,
             },
           },
           {
@@ -116,15 +116,15 @@ export default async function (task_definition, task_metrics, task_results, exec
     execution_context.on_error_callbacks.push(async () => {
       await mongodb
         .collection(versions_collection_name)
-        .deleteOne({ execustack_id: version_result.execustack_id });
+        .deleteOne({ es_id: version_result.es_id });
     });
 
     // delete the document
-    await mongodb.collection(collection_name).deleteOne({ execustack_id });
+    await mongodb.collection(collection_name).deleteOne({ es_id });
     // set a callback to recreate the deleted document
     execution_context.on_error_callbacks.push(async () => {
       await mongodb.collection(collection_name).findOneAndUpdate(
-        { execustack_id },
+        { es_id },
         {
           $set: latest_document,
         },
@@ -136,7 +136,7 @@ export default async function (task_definition, task_metrics, task_results, exec
     });
 
     task_results.is_document_deleted = true;
-    task_results.document = { execustack_id };
+    task_results.document = { es_id };
 
     task_metrics.is_success = true;
   }

@@ -1,6 +1,6 @@
 import config from './config';
 
-const admin_client_api_key = config.admin_client_api_key;
+const admin_client_api_key = config.es_api.admin_client_api_key;
 
 function attachApiKey(headers = {}) {
 	return {
@@ -15,7 +15,7 @@ function attachApiKey(headers = {}) {
  * @returns
  */
 export function ping({ fetch }) {
-	const url = `${config.api.url}/ping`;
+	const url = `${config.es_api.url}/ping`;
 
 	return fetch(url, { headers: attachApiKey() });
 }
@@ -27,7 +27,7 @@ export function ping({ fetch }) {
  * @returns
  */
 export function execution({ fetch, tasks_definitions }) {
-	const url = `${config.api.url}/`;
+	const url = `${config.es_api.url}/`;
 
 	return fetch(url, {
 		method: 'POST',

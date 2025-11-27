@@ -35,7 +35,7 @@ try {
 
   const key_obj = await importSPKI(public_key, "RS256");
   jwt_keys.jwk = await exportJWK(key_obj);
-  jwt_keys.jwk.kid = "execustack-" + Math.random().toString(36).substring(2, 15);
+  jwt_keys.jwk.kid = "es-" + Math.random().toString(36).substring(2, 15);
   jwt_keys.jwk.use = "sig";
   jwt_keys.jwk.alg = "RS256";
 
@@ -51,7 +51,7 @@ try {
 
 export default {
   show_timer_logs: process.env.SHOW_TIMER_LOGS === "true",
-  admin_client_id: process.env.ADMIN_CLIENT_ID || "execustack_admin",
+  admin_client_id: process.env.ADMIN_CLIENT_ID || "es_admin",
   http: {
     port: process.env.HTTP_PORT || "4000",
     host: process.env.HOST || "localhost",

@@ -1,5 +1,5 @@
 import mongodb_client from "../../stack/mongodb/index.js";
-import { generateExecustackID } from "../utils/index.js";
+import { generateESID } from "../utils/index.js";
 
 /**
  * @description Creates a document in the specified collection.
@@ -18,20 +18,20 @@ export default async function (task_definition, task_metrics, task_results, exec
     throw "Invalid task definition";
   }
 
-  // generate the execustack_id
-  const execustack_id = await generateExecustackID(collection_name, execution_context);
+  // generate the es_id
+  const es_id = await generateESID(collection_name, execution_context);
 
   // create the document
   const timestamp = new Date();
   const mongodb = mongodb_client.db(execution_context.client_settings.client_id);
   const document = await mongodb.collection(collection_name).findOneAndUpdate(
-    { execustack_id },
+    { es_id },
     {
       $set: {
         ...payload,
-        execustack_id,
-        execustack_version: 1,
-        from_execustack_version: 0,
+        es_id,
+        es_version: 1,
+        from_es_version: 0,
         createdAt: timestamp,
         updatedAt: timestamp,
       },
@@ -44,7 +44,7 @@ export default async function (task_definition, task_metrics, task_results, exec
 
   // set a callback to delete the created document
   execution_context.on_error_callbacks.push(async () => {
-    await mongodb.collection(collection_name).deleteOne({ execustack_id });
+    await mongodb.collection(collection_name).deleteOne({ es_id });
   });
 
   task_results.document = document;
