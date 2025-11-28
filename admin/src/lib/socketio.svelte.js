@@ -7,7 +7,7 @@ import { io } from 'socket.io-client';
  */
 
 /** @type {SocketIO} */
-export const socketio = {};
+export const socketio = $state({});
 
 /**
  * @description Initializes the socket connection.
@@ -19,7 +19,7 @@ export const socketio = {};
  */
 export function initSocket(connection_settings) {
 	if (socketio.client) return;
-
+	
 	// Connect with connection info
 	socketio.client = io(connection_settings.url, {
 		query: {
@@ -31,18 +31,11 @@ export function initSocket(connection_settings) {
 	});
 
 	socketio.client.on('connect', () => {
-		console.log('Socket connected:', socketio.client.id);
+		console.log('Socket connected:', socketio.client?.id);
 	});
 
 	socketio.client.on('connect_error', (err) => {
 		console.error('Socket connection error:', err.message);
-	});
-
-	socketio.client.on('pingpong', (msg) => {
-		console.log('Message from server:', msg);
-		if (msg === 'ping') {
-			socketio.client.emit('pingpong', 'pong');
-		}
 	});
 }
 
@@ -52,8 +45,7 @@ export function initSocket(connection_settings) {
  * @returns
  */
 export function joinSocketRooms(token) {
-	if (!socketio.client) return;
-	socketio.client.emit('join_rooms', { token });
+	socketio.client?.emit('join_rooms', { token });
 }
 
 /**
@@ -62,6 +54,5 @@ export function joinSocketRooms(token) {
  * @returns
  */
 export function leaveSocketRooms(rooms) {
-	if (!socketio.client) return;
-	socketio.client.emit('leave_rooms', { rooms });
+	socketio.client?.emit('leave_rooms', { rooms });
 }

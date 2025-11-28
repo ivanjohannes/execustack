@@ -3,60 +3,57 @@ import { error } from '@sveltejs/kit';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ fetch }) {
-	async function es() {
-		const res = await execution({
-			fetch,
-			tasks_definitions: {
-				get_clients_summary: {
-					function: 'mongodb_aggregation',
-					params: {
-						collection_name: 'clients',
-						pipeline: [
-							{
-								$group: {
-									_id: 0,
-									num_clients: { $sum: 1 }
+	async function summary() {
+		try {
+			const res = await execution({
+				fetch,
+				tasks_definitions: {
+					clients: {
+						function: 'mongodb_aggregation',
+						params: {
+							collection_name: 'clients',
+							pipeline: [
+								{
+									$group: {
+										_id: 0,
+										total: { $sum: 1 }
+									}
 								}
-							}
-						]
-					}
-				},
-				get_clients_ws_token: {
-					function: 'util_jwt',
-					params: {
-						payload: {
-							rooms: ['clients']
-						},
-						allowed_uses: 1
+							]
+						}
+					},
+					ws_token: {
+						function: 'util_jwt',
+						params: {
+							payload: {
+								rooms: ['clients']
+							},
+							allowed_uses: 1
+						}
 					}
 				}
-			}
-		});
+			});
 
-		// // wait 2 seconds to simulate longer processing time
-		// await new Promise(resolve => setTimeout(resolve, 2000));
+			if (res.status !== 200) throw new Error('ES response status not 200');
 
-		if (res.status !== 200) {
-			error(500, `ExecuStack API responded with status ${res.status}`);
+			const result = await res.json();
+
+			const execution_metrics = result.execution_metrics;
+
+			if (!execution_metrics.is_success) throw new Error('ES execution unsuccessful');
+
+			return {
+				num_clients: result.tasks_results.clients?.data?.[0]?.total || 0,
+				ws_token: result.tasks_results.ws_token?.token
+			};
+		} catch (err) {
+			console.error('Error executing ES API call:', err);
+			error(500, 'Could not get summary');
+			return null;
 		}
-
-		const result = await res.json();
-
-		const execution_metrics = result.execution_metrics;
-
-		if (!execution_metrics.is_success) {
-			error(500, 'ExecuStack API reported unsuccessful execution');
-		}
-
-		const tasks_results = result.tasks_results;
-
-		return {
-			tasks_results,
-			execution_metrics
-		};
 	}
 
 	return {
-		_page: es()
+		summary: summary()
 	};
 }

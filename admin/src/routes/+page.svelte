@@ -1,37 +1,48 @@
 <script>
-	import { browser } from '$app/environment';
 	import { joinSocketRooms, leaveSocketRooms, socketio } from '$lib/socketio.svelte.js';
-	import { onMount } from 'svelte';
+	import { onDestroy, untrack } from 'svelte';
 
 	let { data } = $props();
 
-	let num_clients = $state();
+	/**
+	 * @typedef {object} Summary
+	 * @property {number} [num_clients]
+	 * @property {string} [ws_token]
+	 */
 
-	async function init() {
-		const _page = await data._page;
+	/** @type {Summary} */
+	const summary = $state({});
 
-		num_clients = _page.tasks_results?.get_clients_summary?.data?.[0]?.num_clients;
-
-		const clients_token = _page.tasks_results?.get_clients_ws_token?.token;
-		if (browser && clients_token && socketio.client) {
-			joinSocketRooms(clients_token);
-
-			socketio.client.on('client_created', (payload) => {
-				num_clients = num_clients + 1;
-			});
-		}
-	}
-
-	onMount(() => {
-		init();
-
-		return () => {
-			leaveSocketRooms(['clients']);
-		};
+	data.summary.then((s) => {
+		if (!s) return;
+		summary.num_clients = s.num_clients;
+		summary.ws_token = s.ws_token;
 	});
+
+	$effect(() => {
+		!!socketio.client; // depend on socketio.client
+		!!summary.ws_token; // depend on ws_token
+
+		untrack(() => {
+			if (socketio.client && summary.ws_token) {
+				joinSocketRooms(summary.ws_token);
+				socketio.client.on('client_created', onClientCreated);
+			}
+		});
+	});
+
+	onDestroy(() => {
+		socketio.client?.off('client_created', onClientCreated);
+		leaveSocketRooms(['clients']);
+	});
+
+	function onClientCreated() {
+		if (summary.num_clients === undefined) return;
+		summary.num_clients += 1;
+	}
 </script>
 
-{#snippet block({ title, subtitle })}
+{#snippet block(/** @type {{ title: string, subtitle: string }}*/ { title, subtitle })}
 	<div
 		class="border rounded p-4 bg-surface border-border hover:bg-hover flex items-start justify-between"
 	>
@@ -43,17 +54,11 @@
 {/snippet}
 
 <h1 class="text-2xl font-semibold pb-4">Dashboard</h1>
-{#await data._page}
-	Loading...
-{:then}
-	<div class="grid lg:grid-cols-2 gap-2">
-		<a href="/clients">
-			{@render block({
-				title: 'Clients',
-				subtitle: num_clients
-			})}
-		</a>
-	</div>
-{:catch error}
-	{error.message}
-{/await}
+<div class="grid lg:grid-cols-2 gap-2">
+	<a href="/clients">
+		{@render block({
+			title: 'Clients',
+			subtitle: summary.num_clients !== undefined ? summary.num_clients.toString() : 'Loading...'
+		})}
+	</a>
+</div>

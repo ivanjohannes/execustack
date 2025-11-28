@@ -26,13 +26,6 @@ export default async function (task_definition, task_metrics, task_results, exec
     const nsp = socketio_server.of(client_namespace);
 
     nsp.on("connection", (socket) => {
-      // for debugging purposes
-      socket.on("pingpong", (msg) => {
-        if (msg === "ping") {
-          socket.emit("pingpong", "pong");
-        }
-      });
-
       socket.on("join_rooms", async (msg) => {
         const token = msg.token;
 
@@ -54,6 +47,8 @@ export default async function (task_definition, task_metrics, task_results, exec
           }
           socket.join(room);
         }
+
+        console.log(`Socket ${socket.id} joined rooms:`, rooms_to_join);
 
         socket.emit("join_rooms_success", rooms_to_join);
       });

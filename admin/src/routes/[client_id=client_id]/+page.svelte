@@ -21,6 +21,7 @@
 
 			socketio.client.on('client_updated', () => {
 				// invalidate page data
+				console.log("Client updated via socket, invalidating data...");
 				invalidateAll();
 			});
 		}
