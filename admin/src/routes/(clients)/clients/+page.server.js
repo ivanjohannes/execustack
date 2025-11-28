@@ -2,7 +2,10 @@ import { execution } from '$lib/server/es_api';
 import { error } from '@sveltejs/kit';
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ fetch, url }) {
+export async function load({ fetch, url, depends }) {
+	// Add a dependency key for invalidation
+	depends('clients:list');
+
 	// get q param from url
 	const search_text = url.searchParams.get('q');
 
@@ -28,8 +31,7 @@ export async function load({ fetch, url }) {
 								{
 									$project: {
 										es_id: 1,
-										settings: 1,
-										createdAt: 1
+										name: '$settings.name'
 									}
 								}
 							]
@@ -49,13 +51,11 @@ export async function load({ fetch, url }) {
 
 			return result.tasks_results.get_clients?.data;
 		} catch (err) {
-			console.error('Error executing ES API call:', err);
-			error(500, 'Could not get clients websocket token');
-			return null;
+			error(500, 'Failed to fetch clients: ' + err?.message);
 		}
 	}
 
 	return {
-		clients: await clients()
+		clients: clients()
 	};
 }

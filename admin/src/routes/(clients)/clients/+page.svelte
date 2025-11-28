@@ -1,29 +1,26 @@
 <script>
-	import { goto } from '$app/navigation';
+	import { goto, invalidate, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import { debounce } from '$lib';
 	import Button from '$lib/components/Button.svelte';
 	import InputText from '$lib/components/InputText.svelte';
-	import { joinSocketRooms, leaveSocketRooms, socketio } from '$lib/socketio.svelte.js';
+	import { socketio } from '$lib/socketio.svelte.js';
 	import { onDestroy, untrack } from 'svelte';
 
 	let { data } = $props();
 
-	let ws_token = $state();
 	let search_text = $state();
 
-	data.clients_room.then((cr) => {
-		if (!cr) return;
-		ws_token = cr.ws_token;
+	// Add debugging
+	$effect(() => {
+		console.log('Data changed:', data);
 	});
 
 	$effect(() => {
 		!!socketio.client; // depend on socketio.client
-		!!ws_token; // depend on ws_token
 
 		untrack(() => {
-			if (socketio.client && ws_token) {
-				joinSocketRooms(ws_token);
+			if (socketio.client) {
 				socketio.client.on('client_created', onClientCreated);
 				socketio.client.on('client_updated', onClientUpdated);
 			}
@@ -42,7 +39,6 @@
 	onDestroy(() => {
 		socketio.client?.off('client_created', onClientCreated);
 		socketio.client?.off('client_updated', onClientUpdated);
-		leaveSocketRooms(['clients']);
 	});
 
 	const updateParamsDebounced = debounce(updateParams, 150);
@@ -52,18 +48,26 @@
 			replaceState: true,
 			noScroll: true,
 			keepFocus: true,
-			invalidate: [(url) => url.pathname === page.url.pathname]
+			invalidate: []
 		});
 	}
 
-	function onClientCreated(created_client) {
-		console.log('client created', created_client);
+	async function onClientCreated(msg) {
+		const doc = msg.document;
+		if (!search_text) {
+			// Invalidate using the specific dependency key
+			await invalidate('clients:list');
+		}
 	}
 
-	function onClientUpdated(updated_client) {
-		console.log('client updated', updated_client);
+	async function onClientUpdated(msg) {
+		const doc = msg.document;
+		const is_rendered = await data.clients.then((c) => c.some((cl) => cl.es_id === doc.es_id));
+		if (is_rendered) {
+			// Invalidate using the specific dependency key
+			await invalidate('clients:list');
+		}
 	}
-
 </script>
 
 {#snippet block({ title })}
@@ -91,11 +95,17 @@
 </div>
 <hr class="text-divider pb-4" />
 <div class="grid grid-cols-1 gap-2">
-	{#each data.clients as client (client.es_id)}
-		<a href="/{client.es_id}">
-			{@render block({
-				title: client.settings.name
-			})}
-		</a>
-	{/each}
+	{#await data.clients}
+		Loading...
+	{:then clients}
+		{#each clients as client (client.es_id)}
+			<a href="/{client.es_id}">
+				{@render block({
+					title: client.name
+				})}
+			</a>
+		{/each}
+	{:catch error}
+		<div class="text-error">{error.message}</div>
+	{/await}
 </div>

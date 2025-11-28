@@ -24,9 +24,7 @@ export async function load({ fetch, locals }) {
 
 			return result.tasks_results.socket_namespace;
 		} catch (err) {
-			console.error('Error executing ES API call:', err);
-			error(500, 'Could not get socket connection settings');
-			return null;
+			error(500, 'Failed to get socket connection settings: ' + err?.message);
 		}
 	}
 

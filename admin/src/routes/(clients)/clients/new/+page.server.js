@@ -19,13 +19,13 @@ export const actions = {
 						}
 					}
 				},
-				ws_emit_event: {
+				ws_emit: {
 					function: 'ws_emit_event',
 					params: {
 						room: 'clients',
 						event: 'client_created',
 						payload: {
-							client: '[[jsonata]]tasks_results.create_client.document'
+							document: '[[jsonata]]tasks_results.create_client.document'
 						}
 					}
 				}
@@ -36,7 +36,8 @@ export const actions = {
 		if (res.status !== 200) {
 			return {
 				success: false,
-				message: 'Failed to create client.'
+				message: 'Failed to create client.',
+				name
 			};
 		}
 

@@ -32,9 +32,7 @@ export async function load({ fetch }) {
 				ws_token: result.tasks_results.ws_token?.token
 			};
 		} catch (err) {
-			console.error('Error executing ES API call:', err);
-			error(500, 'Could not get clients websocket token');
-			return null;
+			error(500, 'Failed to get clients websocket token: ' + err?.message);
 		}
 	}
 
