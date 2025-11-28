@@ -12,7 +12,10 @@
 	<Logo />
 	<div class="flex gap-x-2">
 		{#if getNextTheme()?.setting}
-			<Button onclick={() => setTheme(getNextTheme()?.setting)}>
+			<Button
+				onclick={() => setTheme(getNextTheme()?.setting)}
+				class="bg-secondary hover:bg-secondary-hover text-secondary-foreground"
+			>
 				{getNextTheme()?.label}
 			</Button>
 		{/if}

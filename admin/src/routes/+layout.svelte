@@ -5,14 +5,14 @@
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import { initSocket } from '$lib/socketio.svelte';
 	import { browser } from '$app/environment';
-	import { listenToSystemThemeChanges, theme_settings } from '$lib/theme.svelte';
+	import { allowedThemes, listenToSystemThemeChanges, theme_settings } from '$lib/theme.svelte';
 
 	let sidebar = $state();
 
 	let { data, children } = $props();
 
 	// set initial theme
-	theme_settings.theme = data.initial_theme;
+	theme_settings.theme = allowedThemes.includes(data.initial_theme) ? data.initial_theme : 'system';
 
 	if (browser) {
 		data.socket_namespace.then((sn) => {

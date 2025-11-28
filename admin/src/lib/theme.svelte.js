@@ -1,4 +1,4 @@
-const allowedThemes = ['light', 'dark', 'system', 'unicorn', 'forest', 'blizzard'];
+export const allowedThemes = ['light', 'dark', 'system', 'fire', 'water', 'earth', 'air'];
 
 /**
  * @type {{ theme?: string }}
@@ -7,35 +7,40 @@ export const theme_settings = $state({});
 
 const next_theme = $derived.by(() => {
 	switch (theme_settings.theme) {
-		case 'unicorn':
+		case 'light':
 			return {
-				label: 'Unicorn',
-				setting: 'forest'
-			};
-		case 'forest':
-			return {
-				label: 'Forest',
-				setting: 'blizzard'
-			};
-		case 'blizzard':
-			return {
-				label: 'Blizzard',
+				label: 'Light',
 				setting: 'dark'
 			};
 		case 'dark':
 			return {
 				label: 'Dark',
-				setting: 'light'
-			};
-		case 'light':
-			return {
-				label: 'Light',
 				setting: 'system'
 			};
 		case 'system':
 			return {
 				label: 'System',
-				setting: 'unicorn'
+				setting: 'fire'
+			};
+		case 'fire':
+			return {
+				label: 'Fire',
+				setting: 'water'
+			};
+		case 'water':
+			return {
+				label: 'Water',
+				setting: 'earth'
+			};
+		case 'earth':
+			return {
+				label: 'Earth',
+				setting: 'air'
+			};
+		case 'air':
+			return {
+				label: 'Air',
+				setting: 'light'
 			};
 		default:
 			return null;
