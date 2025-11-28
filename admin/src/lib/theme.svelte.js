@@ -7,16 +7,6 @@ export const theme_settings = $state({});
 
 const next_theme = $derived.by(() => {
 	switch (theme_settings.theme) {
-		case 'light':
-			return {
-				label: 'Light',
-				setting: 'dark'
-			};
-		case 'dark':
-			return {
-				label: 'Dark',
-				setting: 'unicorn'
-			};
 		case 'unicorn':
 			return {
 				label: 'Unicorn',
@@ -30,13 +20,25 @@ const next_theme = $derived.by(() => {
 		case 'blizzard':
 			return {
 				label: 'Blizzard',
-				setting: 'system'
+				setting: 'dark'
 			};
-		default:
+		case 'dark':
 			return {
-				label: 'System',
+				label: 'Dark',
 				setting: 'light'
 			};
+		case 'light':
+			return {
+				label: 'Light',
+				setting: 'system'
+			};
+		case 'system':
+			return {
+				label: 'System',
+				setting: 'unicorn'
+			};
+		default:
+			return null;
 	}
 });
 
@@ -46,7 +48,7 @@ export const getNextTheme = () => {
 
 /**
  * @description Sets the theme client side and persists it via an API call.
- * @param {string} theme
+ * @param {string} [theme]
  * @returns {string | undefined} The applied theme.
  */
 export function setTheme(theme) {

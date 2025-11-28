@@ -1,5 +1,5 @@
 <script>
-	import { getNextTheme, setTheme, theme_settings } from '$lib/theme.svelte';
+	import { getNextTheme, setTheme } from '$lib/theme.svelte';
 	import Button from './Button.svelte';
 	import Logo from './Logo.svelte';
 
@@ -11,9 +11,9 @@
 >
 	<Logo />
 	<div class="flex gap-x-2">
-		{#if theme_settings.theme}
-			<Button onclick={() => setTheme(getNextTheme().setting)}>
-				{getNextTheme().label}
+		{#if getNextTheme()?.setting}
+			<Button onclick={() => setTheme(getNextTheme()?.setting)}>
+				{getNextTheme()?.label}
 			</Button>
 		{/if}
 		<Button class="md:hidden" onclick={() => toggleSidebar()}>Menu</Button>

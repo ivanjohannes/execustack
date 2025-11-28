@@ -18,7 +18,7 @@
 </script>
 
 {#snippet content()}
-	<div class="space-y-2">
+	<div class="space-y-2 pt-2">
 		{#each items as item}
 			<a
 				href={item.href}
