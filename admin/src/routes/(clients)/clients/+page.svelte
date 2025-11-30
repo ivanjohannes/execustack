@@ -40,7 +40,7 @@
 
 	function updateParams() {
 		let skip_goto = true;
-		if (page.url.searchParams.get('q') !== (search_text ?? '')) skip_goto = false;
+		if ((page.url.searchParams.get('q') ?? '') !== (search_text ?? '')) skip_goto = false;
 		if (skip_goto) return;
 		goto(`?q=${encodeURIComponent(search_text ?? '')}`, {
 			replaceState: true,
