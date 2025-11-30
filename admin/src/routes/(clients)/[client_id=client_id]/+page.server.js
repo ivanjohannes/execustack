@@ -2,8 +2,12 @@ import { execution } from '$lib/server/es_api';
 import { error } from '@sveltejs/kit';
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ params, fetch }) {
+export async function load({ params, fetch, depends }) {
 	const client_id = params.client_id;
+
+	// Add a dependency key for invalidation
+	depends(client_id);
+
 	async function client() {
 		try {
 			const res = await execution({
@@ -70,7 +74,7 @@ export const actions = {
 				ws_emit: {
 					function: 'ws_emit_event',
 					params: {
-						room: 'clients',
+						rooms: ['clients'],
 						event: 'client_updated',
 						payload: {
 							document: '[[jsonata]]tasks_results.update_client.document'

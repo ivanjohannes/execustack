@@ -21,15 +21,6 @@ export async function load({ fetch }) {
 								}
 							]
 						}
-					},
-					ws_token: {
-						function: 'util_jwt',
-						params: {
-							payload: {
-								rooms: ['clients']
-							},
-							allowed_uses: 1
-						}
 					}
 				}
 			});
@@ -43,8 +34,7 @@ export async function load({ fetch }) {
 			if (!execution_metrics.is_success) throw new Error('ES execution unsuccessful');
 
 			return {
-				num_clients: result.tasks_results.clients?.data?.[0]?.total || 0,
-				ws_token: result.tasks_results.ws_token?.token
+				num_clients: result.tasks_results.clients?.data?.[0]?.total || 0
 			};
 		} catch (err) {
 			error(500, 'Failed to fetch summary: ' + err?.message);

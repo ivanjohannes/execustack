@@ -22,7 +22,7 @@ export const actions = {
 				ws_emit: {
 					function: 'ws_emit_event',
 					params: {
-						room: 'clients',
+						rooms: ['home', 'clients'],
 						event: 'client_created',
 						payload: {
 							document: '[[jsonata]]tasks_results.create_client.document'

@@ -4,28 +4,28 @@
 
 	let { data } = $props();
 
-	/**
-	 * @typedef {object} Summary
-	 * @property {number} [num_clients]
-	 * @property {string} [ws_token]
-	 */
+	let num_clients = $state();
+	let ws_rooms = $state();
 
-	/** @type {Summary} */
-	const summary = $state({});
+	data.ws_settings
+		.then((ws) => {
+			if (ws?.ws_rooms) ws_rooms = ws.ws_rooms;
+		})
+		.catch(() => {});
 
-	data.summary.then((s) => {
-		if (!s) return;
-		summary.num_clients = s.num_clients;
-		summary.ws_token = s.ws_token;
-	});
+	data.summary
+		.then((summary) => {
+			num_clients = summary?.num_clients;
+		})
+		.catch(() => {});
 
 	$effect(() => {
 		!!socketio.client; // depend on socketio.client
-		!!summary.ws_token; // depend on ws_token
+		!!ws_rooms; // depend on ws_rooms
 
 		untrack(() => {
-			if (socketio.client && summary.ws_token) {
-				joinSocketRooms(summary.ws_token);
+			if (socketio.client && ws_rooms) {
+				joinSocketRooms(ws_rooms.token, ['home']);
 				socketio.client.on('client_created', onClientCreated);
 			}
 		});
@@ -33,32 +33,34 @@
 
 	onDestroy(() => {
 		socketio.client?.off('client_created', onClientCreated);
-		leaveSocketRooms(['clients']);
+		leaveSocketRooms(['home']);
 	});
 
 	function onClientCreated() {
-		if (summary.num_clients === undefined) return;
-		summary.num_clients += 1;
+		num_clients += 1;
 	}
 </script>
-
-{#snippet block(/** @type {{ title: string, subtitle: string }}*/ { title, subtitle })}
-	<div
-		class="border rounded p-4 bg-surface border-border hover:bg-hover flex items-start justify-between"
-	>
-		<div class="">
-			<div class="text-xl text-text">{title}</div>
-			<div class="text-lg text-text-muted">{subtitle}</div>
-		</div>
-	</div>
-{/snippet}
 
 <h1 class="text-2xl font-semibold pb-4">Dashboard</h1>
 <div class="grid lg:grid-cols-2 gap-2">
 	<a href="/clients">
-		{@render block({
-			title: 'Clients',
-			subtitle: summary.num_clients !== undefined ? summary.num_clients.toString() : 'Loading...'
-		})}
+		<div
+			class="border rounded p-4 bg-surface border-border hover:bg-hover flex items-start justify-between"
+		>
+			<div class="">
+				<div class="text-xl text-text">Clients</div>
+				<div class="text-lg text-text-muted">
+					{#await data.summary}
+						Loading...
+					{:then}
+						{num_clients}
+					{:catch error}
+						<div class="text-error">
+							{error.message}
+						</div>
+					{/await}
+				</div>
+			</div>
+		</div>
 	</a>
 </div>

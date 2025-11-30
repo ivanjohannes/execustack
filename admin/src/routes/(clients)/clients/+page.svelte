@@ -1,5 +1,5 @@
 <script>
-	import { goto, invalidate, invalidateAll } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { debounce } from '$lib';
 	import Button from '$lib/components/Button.svelte';
@@ -10,11 +10,6 @@
 	let { data } = $props();
 
 	let search_text = $state();
-
-	// Add debugging
-	$effect(() => {
-		console.log('Data changed:', data);
-	});
 
 	$effect(() => {
 		!!socketio.client; // depend on socketio.client
@@ -44,28 +39,32 @@
 	const updateParamsDebounced = debounce(updateParams, 150);
 
 	function updateParams() {
+		let skip_goto = true;
+		if (page.url.searchParams.get('q') !== (search_text ?? '')) skip_goto = false;
+		if (skip_goto) return;
 		goto(`?q=${encodeURIComponent(search_text ?? '')}`, {
 			replaceState: true,
 			noScroll: true,
 			keepFocus: true,
-			invalidate: []
+			invalidate: ['clients']
 		});
 	}
 
-	async function onClientCreated(msg) {
-		const doc = msg.document;
+	async function onClientCreated() {
 		if (!search_text) {
 			// Invalidate using the specific dependency key
-			await invalidate('clients:list');
+			await invalidate('clients');
 		}
 	}
 
 	async function onClientUpdated(msg) {
 		const doc = msg.document;
-		const is_rendered = await data.clients.then((c) => c.some((cl) => cl.es_id === doc.es_id));
+		const is_rendered = await data.clients
+			.then((c) => c.some((cl) => cl.es_id === doc.es_id))
+			.catch(() => false);
 		if (is_rendered) {
 			// Invalidate using the specific dependency key
-			await invalidate('clients:list');
+			await invalidate('clients');
 		}
 	}
 </script>

@@ -15,9 +15,11 @@
 	theme_settings.theme = allowedThemes.includes(data.initial_theme) ? data.initial_theme : 'system';
 
 	if (browser) {
-		data.socket_namespace.then((sn) => {
-			if (sn) initSocket(sn);
-		});
+		data.ws_settings
+			.then((ws) => {
+				if (ws?.ws_namespace) initSocket(ws.ws_namespace);
+			})
+			.catch(() => {});
 
 		listenToSystemThemeChanges();
 	}

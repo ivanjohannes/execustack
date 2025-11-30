@@ -28,6 +28,7 @@ export default async function (task_definition, task_metrics, task_results, exec
     nsp.on("connection", (socket) => {
       socket.on("join_rooms", async (msg) => {
         const token = msg.token;
+        const rooms = msg?.rooms || [];
 
         const verified_token = await verifyJWT(token, client_id);
 
@@ -38,7 +39,20 @@ export default async function (task_definition, task_metrics, task_results, exec
           return;
         }
 
-        const rooms_to_join = verified_token.payload?.rooms || [];
+        let rooms_to_join = [];
+        const allowed_rooms = verified_token.payload?.rooms || [];
+
+        for (const room of rooms) {
+          if (allowed_rooms.includes(room)) {
+            rooms_to_join.push(room);
+          } else {
+            socket.emit("join_room_error", `Not allowed to join room: ${room}`);
+            rooms_to_join = [];
+            break;
+          }
+        }
+
+        if (!rooms_to_join.length) return;
 
         for (const room of rooms_to_join) {
           // check if socket is already in room
@@ -63,6 +77,8 @@ export default async function (task_definition, task_metrics, task_results, exec
           }
           socket.leave(room);
         }
+
+        console.log(`Socket ${socket.id} left rooms:`, rooms_to_leave);
 
         socket.emit("leave_rooms_success", rooms_to_leave);
       });

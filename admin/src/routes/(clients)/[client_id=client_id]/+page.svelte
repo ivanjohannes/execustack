@@ -25,8 +25,8 @@
 
 	function onClientUpdated(msg) {
 		const doc = msg.document;
-		if (doc.es_id === page.params.client_id) {
-			invalidate(page.url.href)
+		if (doc.es_id === page.params.client_id && page.params.client_id) {
+			invalidate(page.params.client_id);
 		}
 	}
 </script>

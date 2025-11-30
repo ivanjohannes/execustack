@@ -19,7 +19,7 @@ export const socketio = $state({});
  */
 export function initSocket(connection_settings) {
 	if (socketio.client) return;
-	
+
 	// Connect with connection info
 	socketio.client = io(connection_settings.url, {
 		query: {
@@ -42,10 +42,11 @@ export function initSocket(connection_settings) {
 /**
  * @description Join specified socket rooms.
  * @param {string} token
+ * @param {string[]} rooms - The rooms to join.
  * @returns
  */
-export function joinSocketRooms(token) {
-	socketio.client?.emit('join_rooms', { token });
+export function joinSocketRooms(token, rooms) {
+	socketio.client?.emit('join_rooms', { token, rooms });
 }
 
 /**

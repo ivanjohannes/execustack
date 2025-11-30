@@ -4,7 +4,7 @@ import { error } from '@sveltejs/kit';
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ fetch, url, depends }) {
 	// Add a dependency key for invalidation
-	depends('clients:list');
+	depends('clients');
 
 	// get q param from url
 	const search_text = url.searchParams.get('q');

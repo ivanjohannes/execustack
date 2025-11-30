@@ -3,13 +3,24 @@ import { error } from '@sveltejs/kit';
 
 /** @type {import('./$types').LayoutServerLoad} */
 export async function load({ fetch, locals }) {
-	async function socket_namespace() {
+	console.log('Loading layout.server.js');
+
+	async function ws_settings() {
 		try {
 			const res = await execution({
 				fetch,
 				tasks_definitions: {
-					socket_namespace: {
+					ws_namespace: {
 						function: 'ws_prep_namespace'
+					},
+					ws_rooms: {
+						function: 'util_jwt',
+						params: {
+							payload: {
+								rooms: ['home', 'clients']
+							},
+							expiry_ms: 60 * 60 * 1000 // 60 minutes
+						}
 					}
 				}
 			});
@@ -22,14 +33,14 @@ export async function load({ fetch, locals }) {
 
 			if (!execution_metrics.is_success) throw new Error('ES execution unsuccessful');
 
-			return result.tasks_results.socket_namespace;
+			return result.tasks_results;
 		} catch (err) {
-			error(500, 'Failed to get socket connection settings: ' + err?.message);
+			error(500, 'Failed to fetch WebSocket settings: ' + err?.message);
 		}
 	}
 
 	return {
-		socket_namespace: socket_namespace(),
+		ws_settings: ws_settings(),
 		initial_theme: locals.theme
 	};
 }
