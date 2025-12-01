@@ -278,6 +278,36 @@ export async function verifyJWT(token) {
 }
 
 /**
+ * @description Deletes a JWT token
+ * @param {string} token
+ * @returns {Promise<boolean>} - True if deletion was successful, false otherwise.
+ */
+export async function deleteJWT(token) {
+  try {
+    const verified_token = await new Promise((resolve, reject) => {
+      jwt.verify(token, config.jwt_keys.public, { algorithms: ["RS256"] }, (err, decoded) => {
+        if (err) return reject(err);
+        resolve(decoded);
+      });
+    });
+
+    const client_id = verified_token.sub;
+
+    if (!redis_client) return false;
+
+    const redis_key = `${client_id}:tokens:${verified_token.jti}`;
+    const result = await redis_client.del(redis_key);
+    if (result === 1) {
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    return false;
+  }
+}
+
+/**
  * @description Checks if a token could be a jwt by looking at its structure
  * @param {string} token
  * @returns {boolean}

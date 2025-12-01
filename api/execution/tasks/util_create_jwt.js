@@ -1,4 +1,4 @@
-import { createJWT } from "../utils/index.js";
+import { createJWT, deleteJWT } from "../utils/index.js";
 
 /**
  * @description Creates a jwt token with custom payload.
@@ -17,6 +17,10 @@ export default async function (task_definition, task_metrics, task_results, exec
     allowed_uses,
     client_id: execution_context.client_settings.client_id,
   });
+
+  execution_context.on_error_callbacks.push(async () => {
+    await deleteJWT(task_results.token);
+  })
 
   task_metrics.is_success = true;
 }

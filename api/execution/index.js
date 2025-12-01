@@ -83,10 +83,13 @@ export default async function (execution_context) {
       task_metrics.is_attempted = true;
       try {
         // register a is_reverted callback
+        const task_results = (execution_context.tasks_results[evaluated_task_definition.name] = {});
         execution_context.on_error_callbacks.push(function () {
           task_metrics.is_reverted = true;
+          for (const key of Object.keys(task_results)) {
+            delete task_results[key];
+          }
         });
-        const task_results = (execution_context.tasks_results[evaluated_task_definition.name] = {});
         await task_functions[evaluated_task_definition.function](
           evaluated_task_definition,
           task_metrics,

@@ -55,7 +55,7 @@ export const actions = {
 					is_non_essential: true,
 					params: {
 						rooms: ['home', 'clients'],
-						event: 'client_created',
+						event_name: 'client_created',
 						payload: {
 							document: '[[jsonata]]tasks_results.create_client.document'
 						}

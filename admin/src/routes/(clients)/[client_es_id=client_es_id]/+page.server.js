@@ -91,7 +91,7 @@ export const actions = {
 					is_non_essential: true,
 					params: {
 						rooms: ['clients'],
-						event: 'client_updated',
+						event_name: 'client_updated',
 						payload: {
 							document: '[[jsonata]]tasks_results.update_client.document'
 						}
