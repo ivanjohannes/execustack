@@ -37,7 +37,7 @@ export async function execution_controller(req, res) {
     // execute
     await execution(execution_context);
 
-    res.status(execution_context?.execution_metrics?.is_success ? 200 : 400).json(execution_context);
+    res.status(execution_context?.execution_metrics?.is_success ? 200 : 422).json(execution_context);
   } catch (err) {
     console.error("🔴 - Error occurred in execution_controller:", err);
     res.status(500).json({ error: err.message });

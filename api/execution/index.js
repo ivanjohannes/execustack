@@ -59,20 +59,34 @@ export default async function (execution_context) {
     for (const task_definition of ordered_task_definitions) {
       const evaluated_task_definition = await evaluateTemplate(task_definition, execution_context);
       execution_context.evaluated_tasks_definitions[evaluated_task_definition.name] = evaluated_task_definition;
+
+      const is_essential = !evaluated_task_definition.is_non_essential;
+      const error_message = evaluated_task_definition.error_message || `Error: ${evaluated_task_definition.name}`;
+
+      // pre-validation
+      const pre_validations = evaluated_task_definition.pre_validations || [];
+      const pre_validation_error = pre_validations.find((pv) => !Boolean(pv.expression));
+      if (pre_validation_error) {
+        if (is_essential) {
+          execution_context.execution_metrics.error_message =
+            pre_validation_error.error_message || `Error: ${evaluated_task_definition.name} pre-validation failed`;
+          throw "Task pre-validation failed";
+        } else {
+          continue;
+        }
+      }
+
+      // task
       const task_metrics = execution_context.tasks_metrics[evaluated_task_definition.name];
-      task_metrics.is_conditions_passed = (evaluated_task_definition.conditions ?? []).every((c) =>
-        Boolean(c.expression)
-      );
-      if (!task_metrics.is_conditions_passed) continue;
-      const task_timer = precisionTimer(task_definition.name);
+      const task_timer = precisionTimer(evaluated_task_definition.name);
       task_metrics.ms_since_execution_start = timer(evaluated_task_definition.name);
-      const task_results = (execution_context.tasks_results[evaluated_task_definition.name] = {});
       task_metrics.is_attempted = true;
-      // register a is_reverted callback
-      execution_context.on_error_callbacks.push(function () {
-        task_metrics.is_reverted = true;
-      });
       try {
+        // register a is_reverted callback
+        execution_context.on_error_callbacks.push(function () {
+          task_metrics.is_reverted = true;
+        });
+        const task_results = (execution_context.tasks_results[evaluated_task_definition.name] = {});
         await task_functions[evaluated_task_definition.function](
           evaluated_task_definition,
           task_metrics,
@@ -81,19 +95,25 @@ export default async function (execution_context) {
         );
       } catch (err) {
         console.error("🔴 - Task error -", evaluated_task_definition.name, err);
-        task_metrics.error = String(err);
+        task_metrics.error_message = String(err);
       }
       task_metrics.execution_time_ms = task_timer("stop");
-      if (!task_metrics.is_success) {
-        if (evaluated_task_definition.is_continue_if_error) {
-          console.log(`🟠 - Task error but continuing: ${evaluated_task_definition.name}`);
+
+      if (!task_metrics.is_success && is_essential) {
+        execution_context.execution_metrics.error_message = error_message;
+        throw "Task failed";
+      }
+
+      // post-validation
+      const post_validations = await evaluateTemplate(task_definition.post_validations || [], execution_context);
+      const post_validation_error = post_validations.find((pv) => !Boolean(pv.expression));
+      if (post_validation_error) {
+        if (is_essential) {
+          execution_context.execution_metrics.error_message =
+            post_validation_error.error_message ?? `Error: ${evaluated_task_definition.name} post-validation failed`;
+          throw "Task post-validation failed";
         } else {
-          if (evaluated_task_definition.if_error_message) {
-            execution_context.execution_metrics.error_message = evaluated_task_definition.if_error_message;
-          } else {
-            execution_context.execution_metrics.error_message = `Task failed: ${evaluated_task_definition.name}`;
-          }
-          throw "Task failed";
+          continue;
         }
       }
     }

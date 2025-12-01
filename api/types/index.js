@@ -30,21 +30,21 @@
  * @property {string} [name]
  * @property {number} [execution_order]
  * @property {object} [params]
- * @property {object} [conditions]
- * @property {boolean} [is_continue_if_error]
- * @property {TaskCondition[]} [conditions]
+ * @property {TaskPreValidation[]} [pre_validations]
+ * @property {TaskPostValidation[]} [post_validations]
  * @property {string} [is_secret_task_results]
+ * @property {string} [error_message]
+ * @property {boolean} [is_non_essential]
  */
 
 /**
  * @typedef {object} TaskMetrics
  * @property {boolean} is_attempted
- * @property {boolean} [is_success]
- * @property {number} [execution_time_ms]
  * @property {number} [ms_since_execution_start]
+ * @property {number} [execution_time_ms]
+ * @property {boolean} [is_success]
+ * @property {string} [error_message]
  * @property {boolean} [is_reverted]
- * @property {boolean} [is_conditions_passed]
- * @property {string} [error]
  */
 
 /**
@@ -52,6 +52,13 @@
  */
 
 /**
- * @typedef {object} TaskCondition
+ * @typedef {object} TaskPreValidation
  * @property {string} expression
+ * @property {string} [error_message]
+ */
+
+/**
+ * @typedef {object} TaskPostValidation
+ * @property {string} expression
+ * @property {string} [error_message]
  */

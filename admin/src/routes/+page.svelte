@@ -1,5 +1,6 @@
 <script>
 	import { joinSocketRooms, leaveSocketRooms, socketio } from '$lib/socketio.svelte.js';
+	import { addToast } from '$lib/toasts.svelte.js';
 	import { onDestroy, untrack } from 'svelte';
 
 	let { data } = $props();

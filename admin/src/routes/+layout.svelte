@@ -6,6 +6,8 @@
 	import { initSocket } from '$lib/socketio.svelte';
 	import { browser } from '$app/environment';
 	import { allowedThemes, listenToSystemThemeChanges, theme_settings } from '$lib/theme.svelte';
+	import ToastQueue from '$lib/components/ToastQueue.svelte';
+	import { addToast } from '$lib/toasts.svelte';
 
 	let sidebar = $state();
 
@@ -19,7 +21,12 @@
 			.then((ws) => {
 				if (ws?.ws_namespace) initSocket(ws.ws_namespace);
 			})
-			.catch(() => {});
+			.catch((err) => {
+				addToast({
+					title: 'Error!',
+					message: err.message
+				});
+			});
 
 		listenToSystemThemeChanges();
 	}
@@ -28,6 +35,8 @@
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
+
+<ToastQueue />
 
 <main class="bg-bg text-text flex flex-col h-screen min-h-0">
 	<div class="shrink-0">

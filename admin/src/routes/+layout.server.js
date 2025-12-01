@@ -3,40 +3,37 @@ import { error } from '@sveltejs/kit';
 
 /** @type {import('./$types').LayoutServerLoad} */
 export async function load({ fetch, locals }) {
-	console.log('Loading layout.server.js');
-
 	async function ws_settings() {
-		try {
-			const res = await execution({
-				fetch,
-				tasks_definitions: {
-					ws_namespace: {
-						function: 'ws_prep_namespace'
-					},
-					ws_rooms: {
-						function: 'util_jwt',
-						params: {
-							payload: {
-								rooms: ['home', 'clients']
-							},
-							expiry_ms: 60 * 60 * 1000 // 60 minutes
-						}
+		const es_result = await execution({
+			fetch,
+			tasks_definitions: {
+				ws_namespace: {
+					function: 'ws_prep_namespace',
+					error_message: 'Could not prepare WS namespace'
+				},
+				ws_rooms: {
+					function: 'util_jwt',
+					error_message: 'Could not generate WS rooms JWT',
+					params: {
+						payload: {
+							rooms: ['home', 'clients']
+						},
+						expiry_ms: 60 * 60 * 1000 // 60 minutes
 					}
 				}
-			});
+			}
+		}).catch((e) => {
+			console.error(e);
+			return;
+		});
 
-			if (res.status !== 200) throw new Error('ES response status not 200');
+		if (!es_result) return error(500, 'Server error');
 
-			const result = await res.json();
+		const execution_metrics = es_result.execution_metrics;
 
-			const execution_metrics = result.execution_metrics;
+		if (!execution_metrics.is_success) return error(422, execution_metrics.error_message);
 
-			if (!execution_metrics.is_success) throw new Error('ES execution unsuccessful');
-
-			return result.tasks_results;
-		} catch (err) {
-			error(500, 'Failed to fetch WebSocket settings: ' + err?.message);
-		}
+		return es_result.tasks_results;
 	}
 
 	return {

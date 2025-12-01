@@ -1,0 +1,206 @@
+import { execution } from '$lib/server/es_api';
+import { error, fail } from '@sveltejs/kit';
+
+/** @type {import('./$types').PageServerLoad} */
+export async function load({ params, fetch, depends }) {
+	const client_es_id = params.client_es_id;
+
+	// Add a dependency key for invalidation
+	depends(client_es_id);
+
+	async function client() {
+		const es_result = await execution({
+			fetch,
+			tasks_definitions: {
+				get_client: {
+					function: 'mongodb_aggregation',
+					error_message: 'Could not get client details',
+					params: {
+						collection_name: 'clients',
+						pipeline: [
+							{
+								$match: {
+									es_id: client_es_id
+								}
+							},
+							{
+								$limit: 1
+							},
+							{
+								$project: {
+									es_id: 1,
+									settings: 1,
+									is_admin: { $eq: ['$settings.client_id', 'es_admin'] },
+									api_key_hash: {
+										$cond: ['$api_key_hash', '******************************', '']
+									}
+								}
+							}
+						]
+					},
+					post_validations: [
+						{
+							expression: '[[jsonata]]$count(tasks_results.get_client.data) >= 1',
+							error_message: 'Client not found.'
+						}
+					]
+				}
+			}
+		}).catch((e) => {
+			console.error(e);
+			return;
+		});
+
+		if (!es_result) return error(500, 'Server error');
+
+		const execution_metrics = es_result.execution_metrics;
+
+		if (!execution_metrics.is_success) return error(422, execution_metrics.error_message);
+
+		return es_result.tasks_results.get_client?.data?.[0];
+	}
+
+	return {
+		client: client()
+	};
+}
+
+export const actions = {
+	update: async ({ request, fetch, params }) => {
+		const formData = await request.formData();
+		const name = formData.get('name');
+
+		const es_result = await execution({
+			tasks_definitions: {
+				update_client: {
+					function: 'mongodb_update_doc',
+					error_message: 'Could not update client',
+					params: {
+						es_id: params.client_es_id,
+						update: {
+							$set: {
+								'settings.name': name
+							}
+						}
+					}
+				},
+				ws_emit: {
+					function: 'ws_emit_event',
+					is_non_essential: true,
+					params: {
+						rooms: ['clients'],
+						event: 'client_updated',
+						payload: {
+							document: '[[jsonata]]tasks_results.update_client.document'
+						}
+					}
+				}
+			},
+			fetch
+		}).catch((e) => {
+			console.error(e);
+			return;
+		});
+
+		if (!es_result)
+			return fail(500, {
+				error_message: 'Server error',
+				name
+			});
+
+		if (!es_result.execution_metrics?.is_success) {
+			return fail(422, {
+				error_message: es_result.execution_metrics?.error_message,
+				name
+			});
+		}
+
+		return {
+			message: 'Client updated successfully.',
+			name
+		};
+	},
+	generate_api_key: async ({ fetch }) => {
+		const es_result = await execution({
+			tasks_definitions: {
+				generate_key: {
+					error_message: 'Could not generate API key',
+					function: 'util_random_string',
+					params: {
+						length: 30
+					}
+				}
+			},
+			fetch
+		}).catch((e) => {
+			console.error(e);
+			return;
+		});
+
+		if (!es_result)
+			return fail(500, {
+				error_message: 'Server error'
+			});
+
+		if (!es_result.execution_metrics?.is_success) {
+			return fail(422, {
+				error_message: es_result.execution_metrics?.error_message
+			});
+		}
+
+		const api_key = es_result.tasks_results.generate_key?.random_string;
+
+		return {
+			message: 'Generated an API key',
+			api_key
+		};
+	},
+	save_api_key: async ({ request, fetch, params }) => {
+		const formData = await request.formData();
+		const api_key = formData.get('api_key');
+
+		const es_result = await execution({
+			tasks_definitions: {
+				generate_hash: {
+					function: 'util_string_to_hash',
+					error_message: 'Could not hash API key',
+					params: {
+						string: api_key
+					},
+					is_secret_task_results: true
+				},
+				update_client: {
+					function: 'mongodb_update_doc',
+					error_message: 'Could not save API key hash',
+					params: {
+						es_id: params.client_es_id,
+						update: {
+							$set: {
+								api_key_hash: '{{tasks_results.generate_hash.hash}}'
+							}
+						}
+					}
+				}
+			},
+			fetch
+		}).catch((e) => {
+			console.error(e);
+			return;
+		});
+
+		if (!es_result)
+			return fail(500, {
+				error_message: 'Server error'
+			});
+
+		if (!es_result.execution_metrics?.is_success) {
+			return fail(422, {
+				error_message: es_result.execution_metrics?.error_message
+			});
+		}
+
+		return {
+			message: 'Saved the API key'
+		};
+	}
+};

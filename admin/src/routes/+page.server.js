@@ -4,41 +4,39 @@ import { error } from '@sveltejs/kit';
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ fetch }) {
 	async function summary() {
-		try {
-			const res = await execution({
-				fetch,
-				tasks_definitions: {
-					clients: {
-						function: 'mongodb_aggregation',
-						params: {
-							collection_name: 'clients',
-							pipeline: [
-								{
-									$group: {
-										_id: 0,
-										total: { $sum: 1 }
-									}
+		const es_result = await execution({
+			fetch,
+			tasks_definitions: {
+				clients: {
+					function: 'mongodb_aggregation',
+					error_message: 'Could not get clients summary',
+					params: {
+						collection_name: 'clients',
+						pipeline: [
+							{
+								$group: {
+									_id: 0,
+									total: { $sum: 1 }
 								}
-							]
-						}
+							}
+						]
 					}
 				}
-			});
+			}
+		}).catch((e) => {
+			console.error(e);
+			return;
+		});
 
-			if (res.status !== 200) throw new Error('ES response status not 200');
+		if (!es_result) return error(500, 'Server error');
 
-			const result = await res.json();
+		const execution_metrics = es_result.execution_metrics;
 
-			const execution_metrics = result.execution_metrics;
+		if (!execution_metrics.is_success) return error(422, execution_metrics.error_message);
 
-			if (!execution_metrics.is_success) throw new Error('ES execution unsuccessful');
-
-			return {
-				num_clients: result.tasks_results.clients?.data?.[0]?.total || 0
-			};
-		} catch (err) {
-			error(500, 'Failed to fetch summary: ' + err?.message);
-		}
+		return {
+			num_clients: es_result.tasks_results.clients?.data?.[0]?.total || 0
+		};
 	}
 
 	return {

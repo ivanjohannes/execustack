@@ -7,5 +7,7 @@ export { default as mongodb_update_doc } from "./mongodb_update_doc.js";
 export { default as sys_error } from "./sys_error.js";
 export { default as sys_success } from "./sys_success.js";
 export { default as util_jwt } from "./util_jwt.js";
+export { default as util_random_string } from "./util_random_string.js";
+export { default as util_string_to_hash } from "./util_string_to_hash.js";
 export { default as ws_emit_event } from "./ws_emit_event.js";
 export { default as ws_prep_namespace } from "./ws_prep_namespace.js";

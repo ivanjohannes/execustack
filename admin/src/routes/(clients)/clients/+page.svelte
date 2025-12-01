@@ -80,7 +80,7 @@
 {/snippet}
 
 <h1 class="text-2xl font-semibold pb-4">Clients</h1>
-<div class="flex items-end justify-between pb-4 space-x-4">
+<div class="flex items-end justify-between pb-4 space-x-2">
 	<InputText
 		bind:value={search_text}
 		class="grow"
@@ -100,7 +100,7 @@
 		{#each clients as client (client.es_id)}
 			<a href="/{client.es_id}">
 				{@render block({
-					title: client.name
+					title: `${client.name ?? ""} (${client.client_id ?? ""})`
 				})}
 			</a>
 		{/each}

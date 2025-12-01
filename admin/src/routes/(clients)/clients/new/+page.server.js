@@ -1,26 +1,58 @@
 import { execution } from '$lib/server/es_api';
-import { redirect } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 
 export const actions = {
 	create: async ({ request, fetch }) => {
 		const formData = await request.formData();
-		const name = formData.get('name');
+		const client_id = formData.get('client_id');
 
-		const res = await execution({
+		const formatted_client_id = client_id
+			?.toString()
+			?.trim()
+			?.replace(/\s+/g, '_')
+			?.replace(/\./g, '_')
+			?.toLowerCase();
+
+		const es_result = await execution({
 			tasks_definitions: {
+				get_duplicates: {
+					execution_order: 1,
+					function: 'mongodb_aggregation',
+					params: {
+						collection_name: 'clients',
+						pipeline: [
+							{
+								$match: {
+									'settings.client_id': formatted_client_id
+								}
+							}
+						]
+					},
+					error_message: 'Could not check for duplicate client IDs',
+					post_validations: [
+						{
+							expression: '[[jsonata]]$count(tasks_results.get_duplicates.data) <= 0',
+							error_message: 'Client ID already exists.'
+						}
+					]
+				},
 				create_client: {
+					execution_order: 3,
 					function: 'mongodb_create_doc',
+					error_message: 'Could not create client',
 					params: {
 						collection_name: 'clients',
 						payload: {
 							settings: {
-								name
+								client_id: formatted_client_id
 							}
 						}
 					}
 				},
 				ws_emit: {
+					execution_order: 4,
 					function: 'ws_emit_event',
+					is_non_essential: true,
 					params: {
 						rooms: ['home', 'clients'],
 						event: 'client_created',
@@ -31,26 +63,30 @@ export const actions = {
 				}
 			},
 			fetch
+		}).catch((e) => {
+			console.error(e);
+			return;
 		});
 
-		if (res.status !== 200) {
-			return {
-				success: false,
-				message: 'Failed to create client.',
-				name
-			};
+		if (!es_result)
+			return fail(500, {
+				error_message: 'Server error'
+			});
+
+		if (!es_result.execution_metrics?.is_success) {
+			return fail(422, {
+				error_message: es_result.execution_metrics?.error_message,
+				client_id: formatted_client_id
+			});
 		}
 
-		const result = await res.json();
-
-		const client = result?.tasks_results?.create_client?.document ?? null;
+		const client = es_result?.tasks_results?.create_client?.document ?? null;
 
 		if (client) {
 			redirect(303, `/${client.es_id}`);
 		}
 
 		return {
-			success: true,
 			message: 'Client created successfully.'
 		};
 	}

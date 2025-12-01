@@ -26,10 +26,10 @@ export function ping({ fetch }) {
  * @param {object} param0.tasks_definitions
  * @returns
  */
-export function execution({ fetch, tasks_definitions }) {
+export async function execution({ fetch, tasks_definitions }) {
 	const url = `${config.es_api.url}/`;
 
-	return fetch(url, {
+	const response = await fetch(url, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -37,4 +37,10 @@ export function execution({ fetch, tasks_definitions }) {
 		},
 		body: JSON.stringify({ tasks_definitions })
 	});
+
+	if ([422, 200].includes(response.status)) {
+		return await response.json();
+	}
+
+	throw new Error(`ES API responded with status ${response.status}`);
 }

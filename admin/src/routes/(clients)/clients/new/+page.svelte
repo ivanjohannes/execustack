@@ -2,13 +2,40 @@
 	import { enhance } from '$app/forms';
 	import Button from '$lib/components/Button.svelte';
 	import InputText from '$lib/components/InputText.svelte';
+	import { addToast } from '$lib/toasts.svelte';
 </script>
 
-<form action="?/create" method="POST" use:enhance>
+<form
+	action="?/create"
+	method="POST"
+	use:enhance={() => {
+		return async ({ result, update }) => {
+			// add toast if error
+			if (result.type === 'failure') {
+				addToast({
+					title: 'Error!',
+					message: result?.data?.error_message
+				});
+			} else if (result.type === 'redirect') {
+				addToast(
+					{
+						title: 'Success!',
+						message: 'Client created successfully.'
+					},
+					2000
+				);
+			}
+
+			await update()
+		};
+	}}
+>
 	<h1 class="text-2xl font-semibold pb-4">Create New Client</h1>
 	<div class="flex flex-col gap-y-2">
-		<label for="name" class="text-sm font-medium text-text">Client Name</label>
-		<InputText name="name" id="name" required />
+		<label for="client_id" class="text-sm font-medium text-text">
+			Client ID (will be lowercased and trimmed)
+		</label>
+		<InputText name="client_id" id="client_id" required />
 		<div class="flex items-center gap-x-2">
 			<div>
 				<Button type="submit" class="cursor-pointer">Create Client</Button>
