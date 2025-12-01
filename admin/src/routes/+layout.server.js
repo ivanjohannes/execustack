@@ -12,7 +12,7 @@ export async function load({ fetch, locals }) {
 					error_message: 'Could not prepare WS namespace'
 				},
 				ws_token: {
-					function: 'util_jwt',
+					function: 'util_create_jwt',
 					error_message: 'Could not generate WS token',
 					params: {
 						payload: {

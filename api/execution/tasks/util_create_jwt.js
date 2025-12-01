@@ -1,7 +1,4 @@
-import config from "../../config.js";
-import jwt from "jsonwebtoken";
-import { createJWT, generateRandomString } from "../utils/index.js";
-import redis_client from "../../stack/redis/index.js";
+import { createJWT } from "../utils/index.js";
 
 /**
  * @description Creates a jwt token with custom payload.
