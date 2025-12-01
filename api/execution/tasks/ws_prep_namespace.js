@@ -1,6 +1,6 @@
 import config from "../../config.js";
 import socketio_server from "../../interfaces/socketio/index.js";
-import { createJWT, verifyJWT } from "../utils/index.js";
+import { verifyJWT } from "../utils/index.js";
 
 /**
  * @description Makes sure a namespace is prepared for WebSocket connections.
@@ -105,13 +105,6 @@ export default async function (task_definition, task_metrics, task_results, exec
   task_results.url = config.http.host + ":" + config.http.port + client_namespace;
 
   task_results.client_id = client_id;
-
-  task_results.token = await createJWT({
-    payload: {
-      namespace: formatted_namespace,
-    },
-    client_id: execution_context.client_settings.client_id,
-  });
 
   task_metrics.is_success = true;
 }

@@ -11,9 +11,9 @@ export async function load({ fetch, locals }) {
 					function: 'ws_prep_namespace',
 					error_message: 'Could not prepare WS namespace'
 				},
-				ws_rooms: {
+				ws_token: {
 					function: 'util_jwt',
-					error_message: 'Could not generate WS rooms JWT',
+					error_message: 'Could not generate WS token',
 					params: {
 						payload: {
 							rooms: ['home', 'clients']

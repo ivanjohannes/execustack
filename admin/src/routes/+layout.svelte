@@ -19,7 +19,11 @@
 	if (browser) {
 		data.ws_settings
 			.then((ws) => {
-				if (ws?.ws_namespace) initSocket(ws.ws_namespace);
+				if (ws?.ws_namespace && ws?.ws_token)
+					initSocket({
+						...ws.ws_namespace,
+						...ws.ws_token
+					});
 			})
 			.catch((err) => {
 				addToast({

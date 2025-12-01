@@ -4,21 +4,21 @@
 
     let { data, children } = $props();
 
-	let ws_rooms = $state();
+	let ws_token = $state();
 
 	data.ws_settings
 		.then((ws) => {
-			if (ws?.ws_rooms) ws_rooms = ws.ws_rooms;
+			if (ws?.ws_token) ws_token = ws.ws_token;
 		})
 		.catch(() => {});
 
 	$effect(() => {
 		!!socketio.client; // depend on socketio.client
-		!!ws_rooms; // depend on ws_rooms
+		!!ws_token; // depend on ws_token
 
 		untrack(() => {
-			if (socketio.client && ws_rooms) {
-				joinSocketRooms(ws_rooms.token, ['clients']);
+			if (socketio.client && ws_token) {
+				joinSocketRooms(ws_token.token, ['clients']);
 			}
 		});
 	});
