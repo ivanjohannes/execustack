@@ -2,11 +2,6 @@ import execution from "../../execution/index.js";
 
 export async function ping_controller(req, res) {
   try {
-    const client_settings = req.client_settings;
-    if (!client_settings?.client_id) {
-      throw "no client_id";
-    }
-
     res.status(200).send("ExecuStack is alive!");
   } catch (err) {
     console.error("🔴 - Error occurred in ping_controller:", err);
