@@ -1,6 +1,8 @@
 import { execution } from '$lib/server/es_api';
 import { error, fail } from '@sveltejs/kit';
 
+const mask = "******************************"
+
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ params, fetch, depends }) {
 	const client_es_id = params.client_es_id;
@@ -32,7 +34,7 @@ export async function load({ params, fetch, depends }) {
 									settings: 1,
 									is_admin: { $eq: ['$settings.client_id', 'es_admin'] },
 									api_key_hash: {
-										$cond: ['$api_key_hash', '******************************', '']
+										$cond: ['$api_key_hash', mask, '']
 									}
 								}
 							}
@@ -158,6 +160,12 @@ export const actions = {
 	save_api_key: async ({ request, fetch, params }) => {
 		const formData = await request.formData();
 		const api_key = formData.get('api_key');
+
+		if (api_key === mask) {
+			return fail(400, {
+				error_message: 'Please provide a new API key to save.'
+			});
+		}
 
 		const es_result = await execution({
 			tasks_definitions: {
