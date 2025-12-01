@@ -13,10 +13,10 @@ app.use(attachClientSettings);
 // ROUTES
 app.get("/ping", ping_controller);
 app.post("/", execution_controller);
+app.get("/", execution_controller);
 // END ROUTES
 
 // HTTP Server
 const http_server = createServer(app);
 
 export default http_server;
-

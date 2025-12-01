@@ -23,7 +23,7 @@ export async function execution_controller(req, res) {
     execution_context.client_settings = client_settings;
 
     // set execution_definition
-    execution_context.execution_definition = req.body;
+    execution_context.execution_definition = req.execution_definition || req.body;
 
     if (!execution_context.execution_definition) {
       throw "no execution_definition";

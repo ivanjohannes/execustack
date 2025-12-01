@@ -30,7 +30,7 @@ export default async function (task_definition, task_metrics, task_results, exec
         const token = msg.token;
         const rooms = msg?.rooms || [];
 
-        const verified_token = await verifyJWT(token, client_id);
+        const verified_token = await verifyJWT(token);
 
         const token_namespace = verified_token?.payload?.namespace ?? "";
 
@@ -88,7 +88,7 @@ export default async function (task_definition, task_metrics, task_results, exec
       // authenticate the socket connection
       const token = socket.handshake.auth.token;
 
-      const verified_token = await verifyJWT(token, client_id);
+      const verified_token = await verifyJWT(token);
 
       const token_namespace = verified_token?.payload?.namespace ?? "";
 

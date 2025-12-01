@@ -236,10 +236,9 @@ export async function createJWT({ payload, expiry_ms, allowed_uses, client_id })
 /**
  * @description Verifies a JWT token
  * @param {string} token
- * @param {string} client_id
  * @returns {Promise<object|null>} - The verified token payload or null if verification fails.
  */
-export async function verifyJWT(token, client_id) {
+export async function verifyJWT(token) {
   try {
     const verified_token = await new Promise((resolve, reject) => {
       jwt.verify(token, config.jwt_keys.public, { algorithms: ["RS256"] }, (err, decoded) => {
@@ -248,7 +247,8 @@ export async function verifyJWT(token, client_id) {
       });
     });
 
-    if (verified_token.sub !== client_id) {
+    const client_id = verified_token.sub;
+    if (!client_id) {
       throw new Error("Invalid token subject");
     }
 
@@ -275,4 +275,37 @@ export async function verifyJWT(token, client_id) {
   } catch (err) {
     return null;
   }
+}
+
+/**
+ * @description Checks if a token could be a jwt by looking at its structure
+ * @param {string} token
+ * @returns {boolean}
+ */
+export function isJWT(token) {
+  const parts = token.split(".");
+  if (parts.length !== 3) return false;
+  const [headerB64, payloadB64, signatureB64] = parts;
+
+  // check header
+  try {
+    const headerJson = Buffer.from(headerB64, "base64").toString("utf-8");
+    const header = JSON.parse(headerJson);
+    if (!header.alg || !header.typ) return false;
+  } catch (err) {
+    return false;
+  }
+
+  // check payload
+  try {
+    const payloadJson = Buffer.from(payloadB64, "base64").toString("utf-8");
+    JSON.parse(payloadJson);
+  } catch (err) {
+    return false;
+  }
+
+  // check signature
+  if (!signatureB64 || signatureB64.length === 0) return false;
+
+  return true;
 }
