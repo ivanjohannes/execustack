@@ -20,7 +20,7 @@ export const toast_queue = $state({
  * @returns
  */
 export function addToast(toast, duration = 5000) {
-	toast.id = crypto.randomUUID();
+	toast.id = Math.random().toString(36).substring(2, 9);
 	if (duration > 0) {
 		toast.timeout = setTimeout(() => {
 			removeToast(toast.id);
