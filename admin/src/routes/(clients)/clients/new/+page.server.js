@@ -15,7 +15,7 @@ export const actions = {
 
 		const es_result = await execution({
 			tasks_definitions: {
-				get_duplicates: {
+				get_duplicate: {
 					execution_order: 1,
 					function: 'mongodb_aggregation',
 					params: {
@@ -26,12 +26,13 @@ export const actions = {
 									'settings.client_id': formatted_client_id
 								}
 							}
-						]
+						],
+						is_single: true
 					},
 					error_message: 'Could not check for duplicate client IDs',
 					post_validations: [
 						{
-							expression: '[[jsonata]]$count(tasks_results.get_duplicates.data) <= 0',
+							expression: '[[jsonata]]$boolean(tasks_results.get_duplicate.data)',
 							error_message: 'Client ID already exists.'
 						}
 					]

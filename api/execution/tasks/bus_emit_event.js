@@ -1,4 +1,4 @@
-import { fanout_publish } from "../utils/rabbitmq.js";
+import { fanout_publish, queue_publish } from "../utils/rabbitmq.js";
 
 /**
  * @description Emits an event to a path
@@ -9,14 +9,23 @@ import { fanout_publish } from "../utils/rabbitmq.js";
  * @returns {Promise<object>} - Updates task_results with event emission info
  */
 export default async function (task_definition, task_metrics, task_results, execution_context) {
-  const { event_path, event_payload = true } = task_definition?.params ?? {};
+  const { event_path, payload = true, is_broadcast = false } = task_definition?.params ?? {};
 
   if (!event_path) throw "Invalid task definition";
 
   const client_id = execution_context.client_settings.client_id;
-  const exchange_name = `es-bus.${client_id}`;
+  const exchange_name = `es-bus.${client_id}.events`;
 
-  await fanout_publish(exchange_name, JSON.stringify(event_payload));
+  const message = {
+    event_path,
+    payload,
+  };
+
+  if (is_broadcast) {
+    await fanout_publish(exchange_name, JSON.stringify(message));
+  } else {
+    await queue_publish(exchange_name, JSON.stringify(message));
+  }
 
   task_metrics.is_success = true;
 }

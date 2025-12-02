@@ -20,24 +20,23 @@ if (admin_client) {
     console.log("🟠 - Admin client API key hash does not match, updating...");
 
     // update the admin_client
-    const execution_result = await execution({
-      client_settings: admin_client.settings,
-      execution_definition: {
+    const execution_result = await execution(
+      {
         tasks_definitions: {
           update_client: {
             function: "mongodb_update_doc",
             params: {
               es_id,
-              update: {
-                $set: {
-                  api_key_hash,
-                },
+              payload: {
+                api_key_hash,
               },
             },
           },
         },
       },
-    });
+      admin_client.settings.client_id,
+      true
+    );
     if (!execution_result?.execution_metrics?.is_success) throw new Error("Failed to update admin client");
   } else {
     console.log("🟢 - Admin client exists and API key hash matches");
@@ -46,11 +45,8 @@ if (admin_client) {
   console.log("🟠 - Admin client does not exist, creating...");
 
   // update the admin_client
-  const execution_result = await execution({
-    client_settings: {
-      client_id: config.admin_client_id,
-    },
-    execution_definition: {
+  const execution_result = await execution(
+    {
       tasks_definitions: {
         create_client: {
           function: "mongodb_create_doc",
@@ -67,6 +63,8 @@ if (admin_client) {
         },
       },
     },
-  });
+    config.admin_client_id,
+    true
+  );
   if (!execution_result?.execution_metrics?.is_success) throw new Error("Failed to create admin client");
 }

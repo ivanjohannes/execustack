@@ -19,7 +19,8 @@ export async function load({ fetch }) {
 									total: { $sum: 1 }
 								}
 							}
-						]
+						],
+						is_single: true
 					}
 				}
 			}
@@ -35,7 +36,7 @@ export async function load({ fetch }) {
 		if (!execution_metrics.is_success) return error(422, execution_metrics.error_message);
 
 		return {
-			num_clients: es_result.tasks_results.clients?.data?.[0]?.total || 0
+			num_clients: es_result.tasks_results.clients?.data?.total || 0
 		};
 	}
 

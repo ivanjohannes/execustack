@@ -12,8 +12,8 @@ export default async function (task_definition, task_metrics, task_results, exec
   if (!listener_id) throw "Invalid task definition";
   if (!execution_definition) throw "Invalid task definition";
   if (!event_path) throw "Invalid task definition";
-
   
+  // PENDING create_or_update task
 
   task_metrics.is_success = true;
 }

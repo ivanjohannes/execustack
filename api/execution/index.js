@@ -1,13 +1,23 @@
 import { evaluateTemplate, generateESID, precisionTimer } from "./utils/index.js";
 import * as task_functions from "./tasks/index.js";
-import { fanout_publish } from "./utils/rabbitmq.js";
-import mongodb_client from "../stack/mongodb/index.js";
 
 /**
- * @param {import("../types/index.js").ExecutionContext} execution_context
+ * @param {import("../types/index.js").ExecutionDefinition} execution_definition - The definition of the execution to perform.
+ * @param {string} client_id - The client ID for which the execution is performed.
+ * @param {boolean} [is_internal] - Whether the execution is for internal logic
  * @returns {Promise<import("../types/index.js").ExecutionContext>} - The execution context containing task results.
  */
-export default async function (execution_context) {
+export default async function execution(execution_definition, client_id, is_internal = false) {
+  // build an execution_context
+  /** @type {import("../types/index.js").ExecutionContext} */
+  const execution_context = {};
+
+  // populate execution_context
+  execution_context.client_settings = { client_id };
+
+  // set execution_definition
+  execution_context.execution_definition = execution_definition;
+
   const timer = precisionTimer("execution");
   // check there is a execution_definition
   if (!execution_context || !execution_context.execution_definition) {
@@ -122,20 +132,6 @@ export default async function (execution_context) {
     }
 
     for (const [task_name, task_definition] of Object.entries(execution_context.evaluated_tasks_definitions)) {
-      // publish task_results to a fanout exchange
-      const task_results = execution_context.tasks_results[task_name];
-      if (task_results) {
-        const exchange_name = `es-tasks.${execution_context.client_settings.client_id}.${task_definition.function}`;
-        fanout_publish(
-          exchange_name,
-          JSON.stringify({
-            task_name,
-            task_results,
-            evaluated_task_definition: task_definition,
-          })
-        );
-      }
-
       // remove secret task_results
       if (task_definition.is_secret_task_results && execution_context.tasks_results[task_name] !== undefined) {
         delete execution_context.tasks_results[task_name];
@@ -170,14 +166,28 @@ export default async function (execution_context) {
   execution_context.execution_metrics.execution_time_ms = timer("stop");
 
   // create the execution document in the database
-  const mongodb = mongodb_client.db(execution_context.client_settings.client_id);
-  await mongodb.collection("es-executions").insertOne({
-    es_id: execution_context.es_id,
-    execution_definition: execution_context.execution_definition,
-    execution_metrics: execution_context.execution_metrics,
-    tasks_metrics: execution_context.tasks_metrics,
-    created_at: new Date(),
-  });
+  if (!is_internal) {
+    await execution(
+      {
+        tasks_definitions: {
+          create_execution_doc: {
+            function: "mongodb_create_or_update_doc",
+            params: {
+              collection_name: "es-executions",
+              es_id: execution_context.es_id,
+              payload: {
+                execution_definition: execution_context.execution_definition,
+                execution_metrics: execution_context.execution_metrics,
+                tasks_metrics: execution_context.tasks_metrics,
+              },
+            },
+          },
+        },
+      },
+      client_id,
+      true
+    );
+  }
 
   return execution_context;
 }

@@ -1,7 +1,7 @@
 import { execution } from '$lib/server/es_api';
 import { error, fail } from '@sveltejs/kit';
 
-const mask = "******************************"
+const mask = '******************************';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ params, fetch, depends }) {
@@ -26,9 +26,6 @@ export async function load({ params, fetch, depends }) {
 								}
 							},
 							{
-								$limit: 1
-							},
-							{
 								$project: {
 									es_id: 1,
 									settings: 1,
@@ -38,7 +35,8 @@ export async function load({ params, fetch, depends }) {
 									}
 								}
 							}
-						]
+						],
+						is_single: true
 					},
 					post_validations: [
 						{
@@ -59,7 +57,7 @@ export async function load({ params, fetch, depends }) {
 
 		if (!execution_metrics.is_success) return error(422, execution_metrics.error_message);
 
-		return es_result.tasks_results.get_client?.data?.[0];
+		return es_result.tasks_results.get_client?.data;
 	}
 
 	return {
@@ -79,7 +77,7 @@ export const actions = {
 					error_message: 'Could not update client',
 					params: {
 						es_id: params.client_es_id,
-						update: {
+						payload: {
 							$set: {
 								'settings.name': name
 							}
@@ -182,10 +180,8 @@ export const actions = {
 					error_message: 'Could not save API key hash',
 					params: {
 						es_id: params.client_es_id,
-						update: {
-							$set: {
-								api_key_hash: '{{tasks_results.generate_hash.hash}}'
-							}
+						payload: {
+							api_key_hash: '{{tasks_results.generate_hash.hash}}'
 						}
 					}
 				}

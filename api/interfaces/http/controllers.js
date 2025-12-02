@@ -16,21 +16,14 @@ export async function execution_controller(req, res) {
       throw "no client_id";
     }
 
-    // build an execution_context
-    const execution_context = {};
+    const execution_definition = req.execution_definition || req.body;
 
-    // populate execution_context
-    execution_context.client_settings = client_settings;
-
-    // set execution_definition
-    execution_context.execution_definition = req.execution_definition || req.body;
-
-    if (!execution_context.execution_definition) {
+    if (!execution_definition) {
       throw "no execution_definition";
     }
 
     // execute
-    await execution(execution_context);
+    const execution_context = await execution(execution_definition, client_settings.client_id);
 
     res.status(execution_context?.execution_metrics?.is_success ? 200 : 422).json(execution_context);
   } catch (err) {

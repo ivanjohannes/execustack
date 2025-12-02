@@ -13,10 +13,10 @@ export default async function (task_definition, task_metrics, task_results, exec
   const lock_key = task_definition.params?.es_id;
 
   async function task() {
-    const { es_id, update } = task_definition.params;
+    const { es_id, payload } = task_definition.params;
 
     // Validate input
-    if (!es_id || !update) {
+    if (!es_id || !payload) {
       throw "Invalid task definition";
     }
 
@@ -71,8 +71,7 @@ export default async function (task_definition, task_metrics, task_results, exec
       throw `Cannot update document ${es_id}: Document not found`;
     }
 
-    const doc_is_latest =
-      document_data?.document?.es_version > (document_data?.latest_version?.es_version || 0);
+    const doc_is_latest = document_data?.document?.es_version > (document_data?.latest_version?.es_version || 0);
     if (doc_is_latest) {
       // save the document version
       const version_result = await saveDocumentVersion(document_data.document, execution_context);
@@ -90,18 +89,32 @@ export default async function (task_definition, task_metrics, task_results, exec
 
     // set updates
     let updates;
-    if (Array.isArray(update)) {
-      updates = [...update];
+    if (Array.isArray(payload)) {
+      updates = [...payload];
+    } else if (Object.keys(payload).some((key) => key.startsWith("$"))) {
+      updates = [
+        payload,
+        {
+          $set: {
+            updatedAt: new Date(),
+            es_version: new_es_version,
+            from_es_version: new_from_es_version,
+          },
+        },
+      ];
     } else {
-      updates = [update];
+      updates = [
+        {
+          $set: {
+            ...payload,
+            updatedAt: new Date(),
+            es_version: new_es_version,
+            from_es_version: new_from_es_version,
+          },
+        },
+      ];
     }
-    updates.push({
-      $set: {
-        updatedAt: new Date(),
-        es_version: new_es_version,
-        from_es_version: new_from_es_version,
-      },
-    });
+    updates.push({});
 
     // update the document
     const updated_document = await mongodb.collection(collection_name).findOneAndUpdate({ es_id }, updates, {
