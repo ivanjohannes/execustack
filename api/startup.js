@@ -20,7 +20,7 @@ if (admin_client) {
     console.log("🟠 - Admin client API key hash does not match, updating...");
 
     // update the admin_client
-    const execution_result = await execution(
+    const ec = await execution(
       {
         tasks_definitions: {
           update_client: {
@@ -34,10 +34,9 @@ if (admin_client) {
           },
         },
       },
-      admin_client.settings.client_id,
-      true
+      admin_client.settings.client_id
     );
-    if (!execution_result?.execution_metrics?.is_success) throw new Error("Failed to update admin client");
+    if (!ec?.execution_metrics?.is_success) throw new Error("Failed to update admin client");
   } else {
     console.log("🟢 - Admin client exists and API key hash matches");
   }
@@ -45,7 +44,7 @@ if (admin_client) {
   console.log("🟠 - Admin client does not exist, creating...");
 
   // update the admin_client
-  const execution_result = await execution(
+  const ec = await execution(
     {
       tasks_definitions: {
         create_client: {
@@ -63,8 +62,7 @@ if (admin_client) {
         },
       },
     },
-    config.admin_client_id,
-    true
+    config.admin_client_id
   );
-  if (!execution_result?.execution_metrics?.is_success) throw new Error("Failed to create admin client");
+  if (!ec?.execution_metrics?.is_success) throw new Error("Failed to create admin client");
 }

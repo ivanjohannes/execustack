@@ -9,9 +9,9 @@ import socketio_server from "../../interfaces/socketio/index.js";
  * @returns {Promise<object>} - Updates task_results with emission status.
  */
 export default async function (task_definition, task_metrics, task_results, execution_context) {
-  const { namespace = "", rooms, event, payload } = task_definition?.params ?? {};
+  const { namespace = "", rooms, event_name, payload } = task_definition?.params ?? {};
 
-  if (!event) {
+  if (!event_name) {
     throw "Event name is required to emit a WebSocket event";
   }
 
@@ -27,9 +27,9 @@ export default async function (task_definition, task_metrics, task_results, exec
     for (const room of rooms || []) {
       const formatted_room = room?.trim().toLowerCase().replace(/\s+/g, "_");
       if (formatted_room) {
-        nsp.to(formatted_room).emit(event, payload);
+        nsp.to(formatted_room).emit(event_name, payload);
       } else {
-        nsp.emit(event, payload);
+        nsp.emit(event_name, payload);
       }
     }
   }

@@ -92,29 +92,23 @@ export default async function (task_definition, task_metrics, task_results, exec
     if (Array.isArray(payload)) {
       updates = [...payload];
     } else if (Object.keys(payload).some((key) => key.startsWith("$"))) {
-      updates = [
-        payload,
-        {
-          $set: {
-            updatedAt: new Date(),
-            es_version: new_es_version,
-            from_es_version: new_from_es_version,
-          },
-        },
-      ];
+      updates = [payload];
     } else {
       updates = [
         {
           $set: {
             ...payload,
-            updatedAt: new Date(),
-            es_version: new_es_version,
-            from_es_version: new_from_es_version,
           },
         },
       ];
     }
-    updates.push({});
+    updates.push({
+      $set: {
+        updatedAt: new Date(),
+        es_version: new_es_version,
+        from_es_version: new_from_es_version,
+      },
+    });
 
     // update the document
     const updated_document = await mongodb.collection(collection_name).findOneAndUpdate({ es_id }, updates, {

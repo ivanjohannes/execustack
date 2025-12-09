@@ -32,6 +32,7 @@ try {
   } else {
     console.log("🟠 - HTTP interface not started because no HTTP_PORT is configured");
   }
+  await import("./interfaces/amqp/index.js");
   // END Interfaces
 
   console.log("🟢 - ExecuStack started");

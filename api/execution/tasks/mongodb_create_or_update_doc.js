@@ -11,25 +11,22 @@ import mongodb_update_doc from "./mongodb_update_doc.js";
  * @returns {Promise<object>} - The result of the document creation.
  */
 export default async function (task_definition, task_metrics, task_results, execution_context) {
-  const { collection_name, es_id, payload } = task_definition.params;
+  const { collection_name, match, payload } = task_definition.params;
 
   // Validate input
-  if (!collection_name || !payload || !es_id) {
+  if (!collection_name || !payload || !match) {
     throw "Invalid task definition";
   }
 
   const mongodb = mongodb_client.db(execution_context.client_settings.client_id);
 
   // determine if document exists
-  const existing_document = await mongodb.collection(collection_name).findOne({ es_id });
-
+  const existing_document = await mongodb.collection(collection_name).findOne(match);
   if (existing_document) {
+    task_definition.params.es_id = existing_document?.es_id;
     // perform update
     await mongodb_update_doc(task_definition, task_metrics, task_results, execution_context);
   } else {
-    // add es_id to payload
-    task_definition.params.payload.es_id = es_id;
-
     // create the document
     await mongodb_create_doc(task_definition, task_metrics, task_results, execution_context);
   }
