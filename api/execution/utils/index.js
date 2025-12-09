@@ -7,6 +7,7 @@ import crypto from "crypto";
 import redis_client from "../../stack/redis/index.js";
 import redlock_plugin from "../../stack/redlock/index.js";
 import mongodb_client from "../../stack/mongodb/index.js";
+import "./handlebars.js";
 
 /**
  * @description Timer function to precisely time operations.
@@ -37,13 +38,31 @@ export function createHash(unhashed_string) {
 /**
  * @description Generates a random string of specified length.
  * @param {number} length - The length of the random string to generate.
+ * @param {boolean} [is_special] - If true, includes special characters.
+ * @param {boolean} [is_no_numbers] - If true, excludes numeric characters.
+ * @param {boolean} [is_no_letters] - If true, excludes alphabetic characters.
  * @returns {string} - The generated random string.
  */
-export function generateRandomString(length = 20) {
-  return crypto
-    .randomBytes(Math.ceil(length / 2))
-    .toString("hex")
-    .slice(0, length);
+export function generateRandomString(length = 20, is_special, is_no_numbers, is_no_letters) {
+  const numbers = "0123456789";
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  const special = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
+
+  let characters = "";
+  if (!is_no_numbers) characters += numbers;
+  if (!is_no_letters) characters += letters;
+  if (is_special) characters += special;
+
+  if (characters.length === 0) {
+    throw new Error("At least one character set must be included.");
+  }
+
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    result += characters[randomIndex];
+  }
+  return result;
 }
 
 /**

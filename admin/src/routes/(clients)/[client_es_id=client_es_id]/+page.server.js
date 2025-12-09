@@ -126,9 +126,9 @@ export const actions = {
 			tasks_definitions: {
 				generate_key: {
 					error_message: 'Could not generate API key',
-					function: 'util_random_string',
+					function: 'util_add_context',
 					params: {
-						length: 30
+						random_string: '{{#randomstring 30}}{{/randomstring}}'
 					}
 				}
 			},
@@ -149,6 +149,8 @@ export const actions = {
 			});
 		}
 
+		console.log(es_result.tasks_results.generate_key)
+
 		const api_key = es_result.tasks_results.generate_key?.random_string;
 
 		return {
@@ -168,28 +170,20 @@ export const actions = {
 
 		const es_result = await execution({
 			tasks_definitions: {
-				generate_hash: {
-					execution_order: 1,
-					function: 'util_string_to_hash',
-					error_message: 'Could not hash API key',
-					params: {
-						string: api_key
-					},
-					is_secret_task_results: true
-				},
 				update_client: {
-					execution_order: 2,
+					execution_order: 1,
 					function: 'mongodb_update_doc',
 					error_message: 'Could not save API key hash',
 					params: {
 						es_id: params.client_es_id,
 						payload: {
-							api_key_hash: '{{tasks_results.generate_hash.hash}}'
-						}
+							api_key_hash: `{{#hash}}${api_key}{{/hash}}`
+						},
+						is_secret_task_results: true
 					}
 				},
 				ws_emit: {
-					execution_order: 3,
+					execution_order: 2,
 					function: 'ws_emit_event',
 					is_non_essential: true,
 					params: {
