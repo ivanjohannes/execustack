@@ -5,7 +5,7 @@
 
 	let { data } = $props();
 
-	let num_clients = $state();
+	let summary = $state();
 	let ws_token = $state();
 
 	data.ws_settings
@@ -15,8 +15,8 @@
 		.catch(() => {});
 
 	data.summary
-		.then((summary) => {
-			num_clients = summary?.num_clients;
+		.then((s) => {
+			summary = s;
 		})
 		.catch(() => {});
 
@@ -27,23 +27,23 @@
 		untrack(() => {
 			if (socketio.client && ws_token) {
 				joinSocketRooms(ws_token.token, ['home']);
-				socketio.client.on('client_created', onClientCreated);
+				socketio.client.on('clients:create', onClientCreated);
 			}
 		});
 	});
 
 	onDestroy(() => {
-		socketio.client?.off('client_created', onClientCreated);
+		socketio.client?.off('clients:create', onClientCreated);
 		leaveSocketRooms(['home']);
 	});
 
 	function onClientCreated() {
-		num_clients += 1;
+		summary.num_clients += 1;
 	}
 </script>
 
 <h1 class="text-2xl font-semibold pb-4">Dashboard</h1>
-<div class="grid lg:grid-cols-2 gap-2">
+<div class="grid lg:grid-cols-2 gap-2 items-stretch">
 	<a href="/clients">
 		<div
 			class="border rounded p-4 bg-surface border-border hover:bg-hover flex items-start justify-between"
@@ -54,7 +54,7 @@
 					{#await data.summary}
 						Loading...
 					{:then}
-						{num_clients}
+						{summary.num_clients}
 					{:catch error}
 						<div class="text-error">
 							{error.message}

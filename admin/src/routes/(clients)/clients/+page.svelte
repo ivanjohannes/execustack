@@ -16,8 +16,8 @@
 
 		untrack(() => {
 			if (socketio.client) {
-				socketio.client.on('client_created', onClientCreated);
-				socketio.client.on('client_updated', onClientUpdated);
+				socketio.client.on('clients:create', onClientCreated);
+				socketio.client.on('clients:update', onClientUpdated);
 			}
 		});
 	});
@@ -32,8 +32,8 @@
 	});
 
 	onDestroy(() => {
-		socketio.client?.off('client_created', onClientCreated);
-		socketio.client?.off('client_updated', onClientUpdated);
+		socketio.client?.off('clients:create', onClientCreated);
+		socketio.client?.off('clients:update', onClientUpdated);
 	});
 
 	const updateParamsDebounced = debounce(updateParams, 150);
@@ -57,8 +57,7 @@
 		}
 	}
 
-	async function onClientUpdated(msg) {
-		const doc = msg.document;
+	async function onClientUpdated(doc) {
 		const is_rendered = await data.clients
 			.then((c) => c.some((cl) => cl.es_id === doc.es_id))
 			.catch(() => false);

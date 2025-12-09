@@ -1,3 +1,4 @@
+export { default as amqp_publish } from "./amqp_publish.js";
 export { default as mongodb_aggregation } from "./mongodb_aggregation.js";
 export { default as mongodb_create_doc } from "./mongodb_create_doc.js";
 export { default as mongodb_create_or_update_doc } from "./mongodb_create_or_update_doc.js";

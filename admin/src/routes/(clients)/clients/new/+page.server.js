@@ -32,13 +32,13 @@ export const actions = {
 					error_message: 'Could not check for duplicate client IDs',
 					post_validations: [
 						{
-							expression: '[[jsonata]]$boolean(tasks_results.get_duplicate.data)',
+							expression: '[[jsonata]]$not($boolean(tasks_results.get_duplicate.data))',
 							error_message: 'Client ID already exists.'
 						}
 					]
 				},
 				create_client: {
-					execution_order: 3,
+					execution_order: 2,
 					function: 'mongodb_create_doc',
 					error_message: 'Could not create client',
 					params: {
@@ -51,14 +51,27 @@ export const actions = {
 					}
 				},
 				ws_emit: {
-					execution_order: 4,
+					execution_order: 3,
 					function: 'ws_emit_event',
 					is_non_essential: true,
 					params: {
+						event_name: 'clients:create',
 						rooms: ['home', 'clients'],
-						event_name: 'client_created',
-						payload: {
-							document: '[[jsonata]]tasks_results.create_client.document'
+						payload: '[[jsonata]]tasks_results.create_client.document'
+					},
+					is_broadcast: true
+				},
+				amqp_publish: {
+					execution_order: 4,
+					function: 'amqp_publish',
+					error_message: 'Could not publish AMQP message',
+					params: {
+						payload: '[[jsonata]]tasks_results.create_client.document',
+						publish_options: {
+							exchange_options: {
+								exchange_name: 'broadcast',
+								exchange_type: 'fanout'
+							}
 						}
 					}
 				}

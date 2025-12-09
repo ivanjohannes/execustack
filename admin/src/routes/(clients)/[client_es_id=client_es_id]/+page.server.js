@@ -40,7 +40,7 @@ export async function load({ params, fetch, depends }) {
 					},
 					post_validations: [
 						{
-							expression: '[[jsonata]]$count(tasks_results.get_client.data) >= 1',
+							expression: '[[jsonata]]$boolean(tasks_results.get_client.data)',
 							error_message: 'Client not found.'
 						}
 					]
@@ -73,6 +73,7 @@ export const actions = {
 		const es_result = await execution({
 			tasks_definitions: {
 				update_client: {
+					execution_order: 1,
 					function: 'mongodb_update_doc',
 					error_message: 'Could not update client',
 					params: {
@@ -85,15 +86,15 @@ export const actions = {
 					}
 				},
 				ws_emit: {
+					execution_order: 2,
 					function: 'ws_emit_event',
 					is_non_essential: true,
 					params: {
+						event_name: 'clients:update',
 						rooms: ['clients'],
-						event_name: 'client_updated',
-						payload: {
-							document: '[[jsonata]]tasks_results.update_client.document'
-						}
-					}
+						payload: '[[jsonata]]tasks_results.update_client.document'
+					},
+					is_broadcast: true
 				}
 			},
 			fetch
@@ -168,6 +169,7 @@ export const actions = {
 		const es_result = await execution({
 			tasks_definitions: {
 				generate_hash: {
+					execution_order: 1,
 					function: 'util_string_to_hash',
 					error_message: 'Could not hash API key',
 					params: {
@@ -176,6 +178,7 @@ export const actions = {
 					is_secret_task_results: true
 				},
 				update_client: {
+					execution_order: 2,
 					function: 'mongodb_update_doc',
 					error_message: 'Could not save API key hash',
 					params: {
@@ -184,6 +187,17 @@ export const actions = {
 							api_key_hash: '{{tasks_results.generate_hash.hash}}'
 						}
 					}
+				},
+				ws_emit: {
+					execution_order: 3,
+					function: 'ws_emit_event',
+					is_non_essential: true,
+					params: {
+						event_name: 'clients:update',
+						rooms: ['clients'],
+						payload: '[[jsonata]]tasks_results.update_client.document'
+					},
+					is_broadcast: true
 				}
 			},
 			fetch

@@ -15,18 +15,17 @@
 
 		untrack(() => {
 			if (socketio.client) {
-				socketio.client.on('client_updated', onClientUpdated);
+				socketio.client.on('clients:update', onClientUpdated);
 			}
 		});
 	});
 
 	onDestroy(() => {
-		socketio.client?.off('client_updated', onClientUpdated);
+		socketio.client?.off('clients:update', onClientUpdated);
 	});
 
-	function onClientUpdated(msg) {
-		const doc = msg.document;
-		if (doc.es_id === page.params.client_es_id && page.params.client_es_id) {
+	function onClientUpdated(doc) {
+		if (page.params.client_es_id && doc?.es_id === page.params.client_es_id) {
 			invalidate(page.params.client_es_id);
 		}
 	}

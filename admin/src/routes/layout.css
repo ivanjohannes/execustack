@@ -318,7 +318,7 @@
 	   ================================ */
 	
 	/* Error/danger state - Use for: error messages, destructive buttons, validation errors, alerts, failed states */
-	--color-error: #b91c1c;
+	--color-error: #ef4444;
 	
 	/* Text/icons on error color - Use for: text on error buttons/badges, icons in error alerts */
 	--color-error-foreground: #ffffff;

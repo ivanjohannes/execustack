@@ -26,7 +26,7 @@
 				);
 			}
 
-			await update()
+			await update();
 		};
 	}}
 >

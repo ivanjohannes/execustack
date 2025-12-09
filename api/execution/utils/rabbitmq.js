@@ -53,7 +53,7 @@ const default_channel = rabbitmq_client && (await rabbitmq_client.createChannel(
  * @returns {string} Formatted exchange name
  */
 export function getExecutionBroadcastExchangeName(client_id) {
-  return `es-${client_id}-executions`;
+  return `${client_id}-executions`;
 }
 
 /**
@@ -62,7 +62,7 @@ export function getExecutionBroadcastExchangeName(client_id) {
  * @returns {string} Formatted queue name
  */
 export function getExecutionQueueName(client_id) {
-  return `es-${client_id}-executions`;
+  return `${client_id}-executions`;
 }
 
 /**
@@ -81,7 +81,7 @@ export async function setupExchange(exchange_options) {
     await default_channel.assertExchange(exchange_name, exchange_type, {
       durable: is_durable ?? false, // Survive broker restarts (default: true)
       internal: is_internal ?? false, // Only accessible by other exchanges (default: false)
-      autoDelete: is_auto_delete ?? false, // Delete when no bindings exist (default: false)
+      autoDelete: is_auto_delete ?? true, // Delete when no bindings exist (default: false)
     });
   }
 
@@ -96,7 +96,16 @@ export async function setupExchange(exchange_options) {
 export async function setupQueue(queue_options) {
   // Verify channel is initialized before attempting operations
   if (!default_channel) throw new Error("RabbitMQ client is not initialized");
-  const { queue_name, exchange_options, routing_key, arguments: args, headers } = queue_options;
+  const {
+    queue_name,
+    exchange_options,
+    routing_key,
+    arguments: args,
+    headers,
+    is_durable,
+    is_exclusive,
+    is_auto_delete,
+  } = queue_options;
 
   // Ensure the exchange exists before creating the queue
   const exchange_name = await setupExchange(exchange_options);
@@ -108,18 +117,21 @@ export async function setupQueue(queue_options) {
     queueName = q.queue;
   } else {
     // Set up queue-specific arguments using RabbitMQ's x-* convention
-    if (args?.ttl) {
-      queue_options.arguments["x-message-ttl"] = args.ttl; // Message expiration time
+    if (args?.ttl !== undefined) {
+      args["x-message-ttl"] = args.ttl; // Message expiration time
+      delete args.ttl;
     }
-    if (args?.dlx_exchange_name ?? args?.dlx_routing_key) {
-      queue_options.arguments["x-dead-letter-exchange"] = args.dlx_exchange_name ?? ""; // Where rejected/expired messages go
-      queue_options.arguments["x-dead-letter-routing-key"] = args.dlx_routing_key ?? ""; // Routing key for dead-lettered messages
+    if (args?.dlx_exchange_name !== undefined || args?.dlx_routing_key !== undefined) {
+      args["x-dead-letter-exchange"] = args.dlx_exchange_name ?? ""; // Where rejected/expired messages go
+      delete args.dlx_exchange_name;
+      args["x-dead-letter-routing-key"] = args.dlx_routing_key ?? ""; // Routing key for dead-lettered messages
+      delete args.dlx_routing_key;
     }
     await default_channel.assertQueue(queueName, {
-      durable: queue_options.is_durable ?? false, // Survive broker restarts (default: true)
-      exclusive: queue_options.is_exclusive ?? false, // Limited to this connection (default: false)
-      autoDelete: queue_options.is_auto_delete ?? false, // Delete when consumers disconnect (default: false)
-      arguments: queue_options.arguments,
+      durable: is_durable ?? false, // Survive broker restarts (default: true)
+      exclusive: is_exclusive ?? false, // Limited to this connection (default: false)
+      autoDelete: is_auto_delete ?? true, // Delete when consumers disconnect (default: false)
+      arguments: args,
     });
   }
 
