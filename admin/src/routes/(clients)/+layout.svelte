@@ -1,6 +1,6 @@
 <script>
-	import { joinSocketRooms, leaveSocketRooms, socketio } from '$lib/socketio.svelte';
 	import { onDestroy, untrack } from 'svelte';
+	import { joinSocketRooms, leaveSocketRooms, socketio } from 'ui/utils/socketio.svelte.js';
 
     let { data, children } = $props();
 

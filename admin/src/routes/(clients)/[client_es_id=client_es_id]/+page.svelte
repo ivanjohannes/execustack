@@ -2,11 +2,11 @@
 	import { enhance } from '$app/forms';
 	import { invalidate } from '$app/navigation';
 	import { page } from '$app/state';
-	import Button from '$lib/components/Button.svelte';
-	import InputText from '$lib/components/InputText.svelte';
-	import { socketio } from '$lib/socketio.svelte.js';
-	import { addToast } from '$lib/toasts.svelte.js';
+	import { socketio } from 'ui/utils/socketio.svelte.js';
+	import { addToast } from 'ui/utils/toasts.svelte.js';
 	import { onDestroy, untrack } from 'svelte';
+	import InputText from 'ui/input/InputText.svelte';
+	import Button from 'ui/input/Button.svelte';
 
 	let { data, form } = $props();
 

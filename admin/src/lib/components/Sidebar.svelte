@@ -1,8 +1,8 @@
 <script>
 	import { slide } from 'svelte/transition';
-	import Button from './Button.svelte';
 	import Logo from './Logo.svelte';
 	import { cubicInOut } from 'svelte/easing';
+	import Button from 'ui/input/Button.svelte';
 
 	// set state
 	let is_open = $state(false);

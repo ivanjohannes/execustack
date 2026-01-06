@@ -1,7 +1,7 @@
 <script>
-	import { getNextTheme, setTheme } from '$lib/theme.svelte';
-	import Button from './Button.svelte';
+	import { getNextTheme, setTheme } from 'ui/utils/theme.svelte';
 	import Logo from './Logo.svelte';
+	import Button from 'ui/input/Button.svelte';
 
 	let { toggleSidebar } = $props();
 </script>

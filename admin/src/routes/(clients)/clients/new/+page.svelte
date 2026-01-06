@@ -1,8 +1,8 @@
 <script>
 	import { enhance } from '$app/forms';
-	import Button from '$lib/components/Button.svelte';
-	import InputText from '$lib/components/InputText.svelte';
-	import { addToast } from '$lib/toasts.svelte';
+	import { addToast } from 'ui/utils/toasts.svelte.js';
+	import InputText from 'ui/input/InputText.svelte';
+	import Button from 'ui/input/Button.svelte';
 </script>
 
 <form

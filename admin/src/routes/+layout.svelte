@@ -1,13 +1,13 @@
 <script>
-	import './layout.css';
+	import 'ui/index.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
-	import { initSocket } from '$lib/socketio.svelte';
+	import { initSocket } from 'ui/utils/socketio.svelte';
 	import { browser } from '$app/environment';
-	import { allowedThemes, listenToSystemThemeChanges, theme_settings } from '$lib/theme.svelte';
-	import ToastQueue from '$lib/components/ToastQueue.svelte';
-	import { addToast } from '$lib/toasts.svelte';
+	import { allowedThemes, listenToSystemThemeChanges, theme_settings } from 'ui/utils/theme.svelte';
+	import { addToast } from 'ui/utils/toasts.svelte';
+	import ToastQueue from 'ui/components/ToastQueue.svelte';
 
 	let sidebar = $state();
 
