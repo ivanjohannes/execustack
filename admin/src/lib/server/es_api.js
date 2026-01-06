@@ -1,11 +1,11 @@
 import config from './config';
 
-const admin_client_api_key = config.es_api.admin_client_api_key;
+const client_api_key = config.es_api.client_api_key;
 
 function attachApiKey(headers = {}) {
 	return {
 		...headers,
-		Authorization: `Bearer ${admin_client_api_key}`
+		Authorization: `Bearer ${client_api_key}`
 	};
 }
 
