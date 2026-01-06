@@ -1,0 +1,3 @@
+[submodule "admin/src/submodules/svelte-ui-kit"]
+	path = admin/src/submodules/svelte-ui-kit
+	url = git@github.com:ivanjohannes/svelte-ui-kit.git
